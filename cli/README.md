@@ -34,8 +34,8 @@ yarn global add @ai-config-plaza/acp-cli
 
 ```bash
 # 克隆仓库
-git clone https://github.com/AIConfigPlaza/acp-cli.git
-cd acp-cli
+git clone https://github.com/AIConfigPlaza/acp.git
+cd acp/cli
 
 # 安装依赖
 pnpm install
@@ -189,7 +189,7 @@ acp locale
 ### 项目结构
 
 ```
-acp-cli/
+acp/cli/
 ├── bin/                  # 可执行文件入口
 │   └── acp.js
 ├── src/
@@ -263,7 +263,7 @@ ACP CLI 连接到 ACP 平台的后端 API 服务：
 
 遇到问题？请提交 Issue：
 
-- GitHub Issues: https://github.com/AIConfigPlaza/acp-cli/issues
+- GitHub Issues: https://github.com/AIConfigPlaza/acp/issues
 
 ## 📄 许可证
 
