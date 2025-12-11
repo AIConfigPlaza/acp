@@ -1,0 +1,53 @@
+import type { AiIdeType, IdePathMapping } from '../types/index.js'
+
+// 重新导出类型
+export type { AiIdeType, IdePathMapping }
+
+/**
+ * AI IDE 路径映射配置
+ * 定义不同 IDE 的配置文件输出路径
+ */
+
+export const IDE_PATH_MAPPINGS: Record<AiIdeType, IdePathMapping> = {
+  vscode: {
+    prompts: '.github/prompts',
+    agents: 'AGENTS.md',
+    mcp: '.vscode/mcp.json'
+  },
+  cursor: {
+    prompts: '.cursor/commands',
+    agents: 'AGENTS.md',
+    mcp: '.cursor/mcp.json'
+  },
+  codex: {
+    prompts: '~/.codex/prompts',
+    agents: 'AGENTS.md',
+    mcp: '.codex/config.toml'
+  },
+  'claude-code': {
+    prompts: '.claude/commands',
+    agents: 'AGENTS.md',
+    mcp: '.mcp.json'
+  }
+}
+
+/**
+ * 获取 IDE 路径映射
+ */
+export function getIdePathMapping(ide: AiIdeType): IdePathMapping {
+  return IDE_PATH_MAPPINGS[ide]
+}
+
+/**
+ * 获取所有支持的 IDE 列表
+ */
+export function getSupportedIdes(): AiIdeType[] {
+  return Object.keys(IDE_PATH_MAPPINGS) as AiIdeType[]
+}
+
+/**
+ * 验证 IDE 类型是否支持
+ */
+export function isValidIde(ide: string): ide is AiIdeType {
+  return ide in IDE_PATH_MAPPINGS
+}

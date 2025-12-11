@@ -1,0 +1,44 @@
+# 源代码
+src/
+tsconfig.json
+tsup.config.ts
+
+# 测试文件
+tests/
+*.test.ts
+*.spec.ts
+vitest.config.ts
+
+# 开发文件
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# 文档（保留 README.md）
+PROJECT.md
+AGENTS.md
+QUICKSTART.md
+USAGE.md
+COMPLETION_REPORT.md
+CliEndpoints API 文档.md
+
+# 依赖
+node_modules/
+pnpm-lock.yaml
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# 其他
+*.tgz
+.env
+.env.local

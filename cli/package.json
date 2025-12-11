@@ -1,0 +1,69 @@
+{
+  "name": "@ai-config-plaza/acp-cli",
+  "version": "1.0.5",
+  "description": "AI-Config-Plaza CLI 工具 - 统一 AI 编程工具配置管理",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "acp": "./bin/acp.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AIConfigPlaza/acp-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AIConfigPlaza/acp-cli/issues"
+  },
+  "homepage": "https://github.com/AIConfigPlaza/acp-cli#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "start": "node bin/acp.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest",
+    "prepublishOnly": "pnpm build && pnpm typecheck"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "config",
+    "scaffolding",
+    "mcp",
+    "prompt"
+  ],
+  "author": "AIConfigPlaza",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "inquirer": "^10.2.2",
+    "axios": "^1.7.7",
+    "chalk": "^5.3.0",
+    "ora": "^8.1.0",
+    "fs-extra": "^11.2.0",
+    "cosmiconfig": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^22.8.4",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  }
+}
