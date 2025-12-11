@@ -6,8 +6,8 @@
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/AIConfigPlaza/acp-cli.git
-cd acp-cli
+git clone https://github.com/AIConfigPlaza/acp.git
+cd acp/cli
 
 # 2. 安装依赖
 pnpm install
