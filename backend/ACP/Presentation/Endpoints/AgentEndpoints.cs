@@ -17,7 +17,7 @@ public static class AgentEndpoints
     {
         var group = app.MapGroup("/api/agent-configs").RequireAuthorization();
 
-        // 获取当前用户自己创建的 Agent 配置列表
+        // 获取当前用户自己创建的 Agent 配置列表（包含已点赞的）
         group.MapGet("/mine", async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, AppDbContext db) =>
         {
             if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
@@ -27,9 +27,16 @@ public static class AgentEndpoints
             page = page <= 0 ? 1 : page;
             limit = limit <= 0 ? DefaultLimit : Math.Min(limit, DefaultLimit);
 
+            // 获取用户点赞的 Agent 配置 ID 列表
+            var likedAgentIds = await db.UserLikes
+                .Where(l => l.UserId == userId && l.ResourceType == LikeResourceType.AgentConfig)
+                .Select(l => l.ResourceId)
+                .ToListAsync();
+
+            // 查询用户创建的或已点赞的 Agent 配置
             var query = db.AgentConfigs
                 .Include(c => c.User)
-                .Where(c => c.UserId == userId);
+                .Where(c => c.UserId == userId || likedAgentIds.Contains(c.Id));
 
             var total = await query.CountAsync();
             var items = await query
@@ -38,16 +45,10 @@ public static class AgentEndpoints
                 .Take(limit)
                 .ToListAsync();
 
-            // 获取点赞状态
-            var resourceIds = items.Select(c => c.Id).ToList();
-            var likedIds = await db.UserLikes
-                .Where(l => l.UserId == userId && l.ResourceType == LikeResourceType.AgentConfig && resourceIds.Contains(l.ResourceId))
-                .Select(l => l.ResourceId)
-                .ToHashSetAsync();
-
-            var dtos = items.Select(c => c.ToDto(likedIds.Contains(c.Id))).ToList();
+            var likedIdsSet = likedAgentIds.ToHashSet();
+            var dtos = items.Select(c => c.ToDto(likedIdsSet.Contains(c.Id))).ToList();
             return Results.Ok(ApiResponse.Ok(dtos, new PaginationMeta(page, limit, total)));
-        }).WithName("GetMyAgentConfigs").WithSummary("获取当前用户自己创建的Agent配置列表");
+        }).WithName("GetMyAgentConfigs").WithSummary("获取当前用户自己创建的Agent配置列表（包含已点赞的）");
 
         // 获取所有公开的 Agent 配置列表（不包含当前用户创建的）
         group.MapGet("/public", async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, AppDbContext db) =>
@@ -130,11 +131,11 @@ public static class AgentEndpoints
                     return Results.BadRequest(ApiResponse.Fail("INVALID_REQUEST", "Request body is required"));
                 }
 
-                if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
-                    return Results.Unauthorized();
+            if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
+                return Results.Unauthorized();
 
-                var userId = currentUser.UserId.Value;
-                var user = await db.Users.FindAsync(userId);
+            var userId = currentUser.UserId.Value;
+            var user = await db.Users.FindAsync(userId);
                 
                 if (user == null)
                 {
@@ -152,28 +153,28 @@ public static class AgentEndpoints
                     return Results.BadRequest(ApiResponse.Fail("VALIDATION_ERROR", "Content is required"));
                 }
 
-                var entity = new AgentConfig
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    Name = request.Name,
+            var entity = new AgentConfig
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Name = request.Name,
                     Description = request.Description ?? string.Empty,
-                    Content = request.Content,
-                    Format = request.Format,
-                    Tags = request.Tags ?? new(),
-                    IsPublic = request.IsPublic,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                Content = request.Content,
+                Format = request.Format,
+                Tags = request.Tags ?? new(),
+                IsPublic = request.IsPublic,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
                     User = user
-                };
+            };
                 
-                db.AgentConfigs.Add(entity);
-                await db.SaveChangesAsync();
+            db.AgentConfigs.Add(entity);
+            await db.SaveChangesAsync();
                 
                 logger.LogInformation("Agent config created successfully: Id={Id}, Name={Name}, UserId={UserId}", 
                     entity.Id, entity.Name, userId);
                 
-                return Results.Created($"/api/agent-configs/{entity.Id}", ApiResponse.Ok(entity.ToDto(false)));
+            return Results.Created($"/api/agent-configs/{entity.Id}", ApiResponse.Ok(entity.ToDto(false)));
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {

@@ -17,7 +17,7 @@ public static class McpEndpoints
     {
         var group = app.MapGroup("/api/mcp-configs").RequireAuthorization();
 
-        // 获取当前用户自己创建的 MCP 配置列表
+        // 获取当前用户自己创建的 MCP 配置列表（包含已点赞的）
         group.MapGet("/mine", async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, AppDbContext db) =>
         {
             if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
@@ -27,9 +27,16 @@ public static class McpEndpoints
             page = page <= 0 ? 1 : page;
             limit = limit <= 0 ? DefaultLimit : Math.Min(limit, DefaultLimit);
 
+            // 获取用户点赞的 MCP 配置 ID 列表
+            var likedMcpIds = await db.UserLikes
+                .Where(l => l.UserId == userId && l.ResourceType == LikeResourceType.McpConfig)
+                .Select(l => l.ResourceId)
+                .ToListAsync();
+
+            // 查询用户创建的或已点赞的 MCP 配置
             var query = db.McpConfigs
                 .Include(c => c.User)
-                .Where(c => c.UserId == userId);
+                .Where(c => c.UserId == userId || likedMcpIds.Contains(c.Id));
 
             var total = await query.CountAsync();
             var items = await query
@@ -38,16 +45,10 @@ public static class McpEndpoints
                 .Take(limit)
                 .ToListAsync();
 
-            // 获取点赞状态
-            var resourceIds = items.Select(c => c.Id).ToList();
-            var likedIds = await db.UserLikes
-                .Where(l => l.UserId == userId && l.ResourceType == LikeResourceType.McpConfig && resourceIds.Contains(l.ResourceId))
-                .Select(l => l.ResourceId)
-                .ToHashSetAsync();
-
-            var dtos = items.Select(c => c.ToDto(likedIds.Contains(c.Id))).ToList();
+            var likedIdsSet = likedMcpIds.ToHashSet();
+            var dtos = items.Select(c => c.ToDto(likedIdsSet.Contains(c.Id))).ToList();
             return Results.Ok(ApiResponse.Ok(dtos, new PaginationMeta(page, limit, total)));
-        }).WithName("GetMyMcpConfigs").WithSummary("获取当前用户自己创建的MCP配置列表");
+        }).WithName("GetMyMcpConfigs").WithSummary("获取当前用户自己创建的MCP配置列表（包含已点赞的）");
 
         // 获取所有公开的 MCP 配置列表（不包含当前用户创建的）
         group.MapGet("/public", async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, AppDbContext db) =>

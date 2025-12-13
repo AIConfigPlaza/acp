@@ -17,7 +17,7 @@ public static class PromptEndpoints
     {
         var group = app.MapGroup("/api/custom-prompts").RequireAuthorization();
 
-        // 获取当前用户自己创建的 Prompt 列表
+        // 获取当前用户自己创建的 Prompt 列表（包含已点赞的）
         group.MapGet("/mine", async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, AppDbContext db) =>
         {
             if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
@@ -27,9 +27,16 @@ public static class PromptEndpoints
             page = page <= 0 ? 1 : page;
             limit = limit <= 0 ? DefaultLimit : Math.Min(limit, DefaultLimit);
 
+            // 获取用户点赞的 Prompt ID 列表
+            var likedPromptIds = await db.UserLikes
+                .Where(l => l.UserId == userId && l.ResourceType == LikeResourceType.CustomPrompt)
+                .Select(l => l.ResourceId)
+                .ToListAsync();
+
+            // 查询用户创建的或已点赞的 Prompt
             var query = db.CustomPrompts
                 .Include(c => c.User)
-                .Where(c => c.UserId == userId);
+                .Where(c => c.UserId == userId || likedPromptIds.Contains(c.Id));
 
             var total = await query.CountAsync();
             var items = await query
@@ -38,16 +45,10 @@ public static class PromptEndpoints
                 .Take(limit)
                 .ToListAsync();
 
-            // 获取点赞状态
-            var resourceIds = items.Select(c => c.Id).ToList();
-            var likedIds = await db.UserLikes
-                .Where(l => l.UserId == userId && l.ResourceType == LikeResourceType.CustomPrompt && resourceIds.Contains(l.ResourceId))
-                .Select(l => l.ResourceId)
-                .ToHashSetAsync();
-
-            var dtos = items.Select(c => c.ToDto(likedIds.Contains(c.Id))).ToList();
+            var likedIdsSet = likedPromptIds.ToHashSet();
+            var dtos = items.Select(c => c.ToDto(likedIdsSet.Contains(c.Id))).ToList();
             return Results.Ok(ApiResponse.Ok(dtos, new PaginationMeta(page, limit, total)));
-        }).WithName("GetMyCustomPrompts").WithSummary("获取当前用户自己创建的Prompt列表");
+        }).WithName("GetMyCustomPrompts").WithSummary("获取当前用户自己创建的Prompt列表（包含已点赞的）");
 
         // 获取所有公开的 Prompt 列表（不包含当前用户创建的）
         group.MapGet("/public", async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, AppDbContext db) =>

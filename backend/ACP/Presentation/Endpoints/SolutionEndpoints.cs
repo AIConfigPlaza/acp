@@ -15,7 +15,7 @@ public static class SolutionEndpoints
     {
         var group = app.MapGroup("/api/solutions").RequireAuthorization();
 
-        // 获取当前用户自己创建的解决方案列表
+        // 获取当前用户自己创建的解决方案列表（包含已点赞的）
         group.MapGet("/mine", async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, AppDbContext db) =>
         {
             if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
@@ -25,10 +25,17 @@ public static class SolutionEndpoints
             page = page <= 0 ? 1 : page;
             limit = limit <= 0 ? 100 : Math.Min(limit, 100);
 
+            // 获取用户点赞的解决方案 ID 列表
+            var likedSolutionIds = await db.UserLikes
+                .Where(l => l.UserId == userId && l.ResourceType == LikeResourceType.Solution)
+                .Select(l => l.ResourceId)
+                .ToListAsync();
+
+            // 查询用户创建的或已点赞的解决方案
             var query = db.Solutions
                 .Include(s => s.User)
                 .Include(s => s.AgentConfig).ThenInclude(a => a.User)
-                .Where(s => s.UserId == userId);
+                .Where(s => s.UserId == userId || likedSolutionIds.Contains(s.Id));
 
             var total = await query.CountAsync();
             var items = await query
@@ -47,15 +54,15 @@ public static class SolutionEndpoints
                      (l.ResourceType == LikeResourceType.AgentConfig && agentConfigIds.Contains(l.ResourceId))))
                 .ToListAsync();
 
-            var likedSolutionIds = likes.Where(l => l.ResourceType == LikeResourceType.Solution).Select(l => l.ResourceId).ToHashSet();
+            var likedSolutionIdsSet = likes.Where(l => l.ResourceType == LikeResourceType.Solution).Select(l => l.ResourceId).ToHashSet();
             var likedAgentConfigIds = likes.Where(l => l.ResourceType == LikeResourceType.AgentConfig).Select(l => l.ResourceId).ToHashSet();
 
             var dtos = items.Select(s => s.ToDto(
-                likedSolutionIds.Contains(s.Id),
+                likedSolutionIdsSet.Contains(s.Id),
                 likedAgentConfigIds.Contains(s.AgentConfigId)
             )).ToList();
             return Results.Ok(ApiResponse.Ok(dtos, new PaginationMeta(page, limit, total)));
-        }).WithName("GetMySolutions").WithSummary("获取当前用户自己创建的解决方案列表");
+        }).WithName("GetMySolutions").WithSummary("获取当前用户自己创建的解决方案列表（包含已点赞的）");
 
         group.MapGet(string.Empty, async (ICurrentUser currentUser, [FromQuery] int page, [FromQuery] int limit, [FromQuery] string? aiTool, [FromQuery] bool? isPublic, AppDbContext db) =>
         {
