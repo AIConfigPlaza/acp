@@ -21,6 +21,8 @@ public class AppDbContext : DbContext
     public DbSet<AgentConfig> AgentConfigs => Set<AgentConfig>();
     public DbSet<CustomPrompt> CustomPrompts => Set<CustomPrompt>();
     public DbSet<Solution> Solutions => Set<Solution>();
+    public DbSet<Skill> Skills => Set<Skill>();
+    public DbSet<SkillResource> SkillResources => Set<SkillResource>();
     public DbSet<CliToken> CliTokens => Set<CliToken>();
     public DbSet<UserLike> UserLikes => Set<UserLike>();
 
@@ -116,6 +118,37 @@ public class AppDbContext : DbContext
         entity.HasMany(e => e.CustomPrompts)
             .WithMany(p => p.Solutions)
             .UsingEntity(j => j.ToTable("SolutionCustomPrompts"));
+
+        entity.HasMany(e => e.Skills)
+            .WithMany(s => s.Solutions)
+            .UsingEntity(j => j.ToTable("SolutionSkills"));
+      });
+
+      // Skill
+      modelBuilder.Entity<Skill>(entity =>
+      {
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Tags)
+            .HasConversion(stringListConverter)
+            .HasColumnType("text");
+        entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+        entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+        entity.HasOne(e => e.User)
+            .WithMany(u => u.Skills)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+      });
+
+      // SkillResource
+      modelBuilder.Entity<SkillResource>(entity =>
+      {
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+        entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+        entity.HasOne(e => e.Skill)
+            .WithMany(s => s.SkillResources)
+            .HasForeignKey(e => e.SkillId)
+            .OnDelete(DeleteBehavior.Cascade);
       });
 
       // CliToken

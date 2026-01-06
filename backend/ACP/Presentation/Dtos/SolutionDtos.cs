@@ -44,6 +44,7 @@ public record SolutionDetailDto(
     AgentConfigDto? AgentConfig,
     List<McpConfigDto> McpConfigs,
     List<CustomPromptDto> CustomPrompts,
+    List<SkillDto> Skills,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );

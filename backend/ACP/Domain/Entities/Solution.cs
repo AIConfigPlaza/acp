@@ -34,4 +34,5 @@ public class Solution
     public AgentConfig AgentConfig { get; set; } = null!;
     public ICollection<McpConfig> McpConfigs { get; set; } = new List<McpConfig>();
     public ICollection<CustomPrompt> CustomPrompts { get; set; } = new List<CustomPrompt>();
+    public ICollection<Skill> Skills { get; set; } = new List<Skill>();
 }

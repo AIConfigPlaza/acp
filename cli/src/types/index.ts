@@ -75,6 +75,34 @@ export interface Prompt {
   updatedAt: string
 }
 
+// SkillResource
+export interface SkillResource {
+  id: string
+  skillId: string
+  relativePath: string
+  fileName: string
+  fileContent: string
+  createdAt: string
+  updatedAt: string
+}
+
+// Skill
+export interface Skill {
+  id: string
+  name: string
+  skillMarkdown: string
+  tags: string[]
+  isPublic: boolean
+  isLiked: boolean
+  downloads: number
+  likes: number
+  rating: number
+  author: Author
+  skillResources?: SkillResource[]
+  createdAt: string
+  updatedAt: string
+}
+
 // 解决方案
 export interface Solution {
   id: string
@@ -97,6 +125,7 @@ export interface Solution {
   agentConfig: AgentConfig
   mcpConfigs?: McpConfig[]
   customPrompts?: Prompt[]
+  skills?: Skill[]
   createdAt: string
   updatedAt: string
 }
@@ -109,4 +138,5 @@ export interface IdePathMapping {
   prompts: string
   agents: string
   mcp: string
+  skills: string
 }

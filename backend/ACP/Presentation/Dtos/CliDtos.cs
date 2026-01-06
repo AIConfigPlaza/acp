@@ -46,6 +46,7 @@ public record CliSolutionDetailDto(
     CliAgentConfigDto? AgentConfig,
     List<CliMcpConfigDto> McpConfigs,
     List<CliCustomPromptDto> CustomPrompts,
+    List<CliSkillDto> Skills,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -107,6 +108,39 @@ public record CliMcpConfigDto(
     int Likes,
     decimal Rating,
     UserSummaryDto Author,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);
+
+/// <summary>
+/// CLI 专用 SkillResource DTO
+/// </summary>
+public record CliSkillResourceDto(
+    Guid Id,
+    Guid SkillId,
+    string RelativePath,
+    string FileName,
+    string FileContent,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);
+
+/// <summary>
+/// CLI 专用 Skill DTO
+/// </summary>
+public record CliSkillDto(
+    Guid Id,
+    string Name,
+    string SkillMarkdown,
+    List<string> Tags,
+    bool IsPublic,
+    bool IsOwner,
+    bool IsLiked,
+    int Downloads,
+    int Likes,
+    decimal Rating,
+    UserSummaryDto Author,
+    List<CliSkillResourceDto> SkillResources,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );

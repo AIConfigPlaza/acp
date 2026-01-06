@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 import { logger } from '../utils/logger.js'
 import { getIdePathMapping, type AiIdeType } from '../utils/ide-mapper.js'
-import type { Solution, Prompt, McpConfig } from '../types/index.js'
+import type { Solution, Prompt, McpConfig, Skill } from '../types/index.js'
 
 /**
  * 配置应用模块 - 将远程配置写入本地文件
@@ -50,6 +50,15 @@ export async function applySolution(
     await applyMcpConfigs(
       solution.mcpConfigs,
       pathMapping.mcp,
+      targetDir
+    )
+  }
+
+  // 4. 应用 Skills
+  if (solution.skills?.length) {
+    await applySkills(
+      solution.skills,
+      pathMapping.skills,
       targetDir
     )
   }
@@ -245,6 +254,125 @@ function convertMcpToToml(mcpServers: Record<string, any>): string {
   }
 
   return tomlContent
+}
+
+/**
+ * 应用 Skills
+ */
+export async function applySkills(
+  skills: Skill[],
+  skillsDir: string,
+  targetDir: string
+): Promise<void> {
+  const fullSkillsDir = path.join(targetDir, skillsDir)
+
+  logger.step(`写入 ${skills.length} 个 Skill 配置到: ${chalk.gray(skillsDir)}`)
+
+  // 确保目录存在
+  await fs.ensureDir(fullSkillsDir)
+
+  for (const skill of skills) {
+    // 生成目录名（清理特殊字符）
+    const skillDirName = sanitizeSkillName(skill.name)
+    const skillDirPath = path.join(fullSkillsDir, skillDirName)
+
+    logger.step(`处理 Skill: ${chalk.cyan(skill.name)}`)
+
+    // 检查目录是否存在
+    const dirExists = await fs.pathExists(skillDirPath)
+    if (dirExists) {
+      const { overwrite } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'overwrite',
+          message: `Skill 目录 ${chalk.cyan(skillDirName)} 已存在，是否覆盖?`,
+          default: true
+        }
+      ])
+
+      if (!overwrite) {
+        logger.warning(`跳过: ${skillDirName}`)
+        continue
+      }
+    }
+
+    // 确保目录存在
+    await fs.ensureDir(skillDirPath)
+
+    // 1. 创建 SKILL.md 文件
+    const skillMdPath = path.join(skillDirPath, 'SKILL.md')
+    await fs.writeFile(skillMdPath, skill.skillMarkdown, 'utf-8')
+    logger.success(`已写入: ${path.join(skillsDir, skillDirName, 'SKILL.md')}`)
+
+    // 2. 处理 SkillResources
+    if (skill.skillResources && skill.skillResources.length > 0) {
+      for (const resource of skill.skillResources) {
+        // 确保相对路径安全（防止路径遍历攻击）
+        const safeRelativePath = sanitizePath(resource.relativePath)
+        const resourceFilePath = path.join(skillDirPath, safeRelativePath)
+
+        // 检查文件是否存在
+        const fileExists = await fs.pathExists(resourceFilePath)
+        if (fileExists) {
+          const { overwrite } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'overwrite',
+              message: `文件 ${chalk.cyan(path.join(skillDirName, safeRelativePath))} 已存在，是否覆盖?`,
+              default: true
+            }
+          ])
+
+          if (!overwrite) {
+            logger.warning(`跳过: ${path.join(skillDirName, safeRelativePath)}`)
+            continue
+          }
+        }
+
+        // 确保父目录存在
+        await fs.ensureDir(path.dirname(resourceFilePath))
+
+        // 写入文件内容
+        await fs.writeFile(resourceFilePath, resource.fileContent, 'utf-8')
+        logger.success(`已写入: ${path.join(skillsDir, skillDirName, safeRelativePath)}`)
+      }
+    }
+  }
+}
+
+/**
+ * 清理 skill 名称，用于创建目录名
+ */
+function sanitizeSkillName(name: string): string {
+  return name
+    .replace(/[<>:"/\\|?*]/g, '-') // 替换非法字符
+    .replace(/\s+/g, '-') // 空格转连字符
+    .replace(/-+/g, '-') // 多个连字符合并
+    .replace(/^-+|-+$/g, '') // 移除首尾连字符
+    .toLowerCase()
+}
+
+/**
+ * 清理路径，防止路径遍历攻击
+ */
+function sanitizePath(relativePath: string): string {
+  // 移除路径遍历攻击（如 ../, ..\, 等）
+  let safePath = relativePath
+    .replace(/\.\./g, '') // 移除 ..
+    .replace(/^[/\\]+/, '') // 移除开头的 / 或 \
+    .replace(/[/\\]+/g, path.sep) // 统一路径分隔符
+
+  // 确保路径是相对路径，不包含绝对路径
+  if (path.isAbsolute(safePath)) {
+    safePath = path.relative('/', safePath)
+  }
+
+  // 移除 Windows 驱动器号（如 C:）
+  if (safePath.match(/^[A-Za-z]:/)) {
+    safePath = safePath.substring(2)
+  }
+
+  return safePath
 }
 
 /**

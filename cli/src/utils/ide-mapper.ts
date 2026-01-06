@@ -12,22 +12,26 @@ export const IDE_PATH_MAPPINGS: Record<AiIdeType, IdePathMapping> = {
   vscode: {
     prompts: '.github/prompts',
     agents: 'AGENTS.md',
-    mcp: '.vscode/mcp.json'
+    mcp: '.vscode/mcp.json',
+    skills: '.github/skills'
   },
   cursor: {
     prompts: '.cursor/commands',
     agents: 'AGENTS.md',
-    mcp: '.cursor/mcp.json'
+    mcp: '.cursor/mcp.json',
+    skills: '.cursor/skills'
   },
   codex: {
     prompts: '~/.codex/prompts',
     agents: 'AGENTS.md',
-    mcp: '.codex/config.toml'
+    mcp: '.codex/config.toml',
+    skills: '.codex/skills'
   },
   'claude-code': {
     prompts: '.claude/commands',
     agents: 'AGENTS.md',
-    mcp: '.mcp.json'
+    mcp: '.mcp.json',
+    skills: '.claude/skills'
   }
 }
 

@@ -110,6 +110,7 @@ public static class SolutionEndpoints
                 .Include(s => s.AgentConfig).ThenInclude(a => a.User)
                 .Include(s => s.McpConfigs).ThenInclude(m => m.User)
                 .Include(s => s.CustomPrompts).ThenInclude(p => p.User)
+                .Include(s => s.Skills).ThenInclude(s => s.User)
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (entity == null) return Results.NotFound();
 
@@ -118,18 +119,21 @@ public static class SolutionEndpoints
             var agentConfigIsLiked = false;
             HashSet<Guid>? likedMcpConfigIds = null;
             HashSet<Guid>? likedCustomPromptIds = null;
+            HashSet<Guid>? likedSkillIds = null;
 
             if (currentUser.IsAuthenticated && currentUser.UserId.HasValue)
             {
                 var mcpConfigIds = entity.McpConfigs.Select(m => m.Id).ToList();
                 var customPromptIds = entity.CustomPrompts.Select(p => p.Id).ToList();
+                var skillIds = entity.Skills.Select(s => s.Id).ToList();
 
                 var likes = await db.UserLikes
                     .Where(l => l.UserId == currentUser.UserId.Value && (
                         (l.ResourceType == LikeResourceType.Solution && l.ResourceId == id) ||
                         (l.ResourceType == LikeResourceType.AgentConfig && l.ResourceId == entity.AgentConfigId) ||
                         (l.ResourceType == LikeResourceType.McpConfig && mcpConfigIds.Contains(l.ResourceId)) ||
-                        (l.ResourceType == LikeResourceType.CustomPrompt && customPromptIds.Contains(l.ResourceId))
+                        (l.ResourceType == LikeResourceType.CustomPrompt && customPromptIds.Contains(l.ResourceId)) ||
+                        (l.ResourceType == LikeResourceType.Skill && skillIds.Contains(l.ResourceId))
                     ))
                     .ToListAsync();
 
@@ -137,9 +141,10 @@ public static class SolutionEndpoints
                 agentConfigIsLiked = likes.Any(l => l.ResourceType == LikeResourceType.AgentConfig && l.ResourceId == entity.AgentConfigId);
                 likedMcpConfigIds = likes.Where(l => l.ResourceType == LikeResourceType.McpConfig).Select(l => l.ResourceId).ToHashSet();
                 likedCustomPromptIds = likes.Where(l => l.ResourceType == LikeResourceType.CustomPrompt).Select(l => l.ResourceId).ToHashSet();
+                likedSkillIds = likes.Where(l => l.ResourceType == LikeResourceType.Skill).Select(l => l.ResourceId).ToHashSet();
             }
 
-            return Results.Ok(ApiResponse.Ok(entity.ToDetailDto(isLiked, agentConfigIsLiked, likedMcpConfigIds, likedCustomPromptIds)));
+            return Results.Ok(ApiResponse.Ok(entity.ToDetailDto(isLiked, agentConfigIsLiked, likedMcpConfigIds, likedCustomPromptIds, likedSkillIds)));
         }).WithName("GetSolution").WithSummary("根据ID获取解决方案详情");
 
         group.MapPost(string.Empty, async (ICurrentUser currentUser, AppDbContext db, CreateSolutionRequest request) =>
@@ -180,9 +185,25 @@ public static class SolutionEndpoints
                 foreach (var item in prompts) entity.CustomPrompts.Add(item);
             }
 
+            if (request.SkillIds?.Any() == true)
+            {
+                var skills = await db.Skills.Include(s => s.User).Where(x => request.SkillIds.Contains(x.Id)).ToListAsync();
+                foreach (var item in skills) entity.Skills.Add(item);
+            }
+
             db.Solutions.Add(entity);
             await db.SaveChangesAsync();
-            return Results.Created($"/api/solutions/{entity.Id}", ApiResponse.Ok(entity.ToDetailDto()));
+
+            // 重新加载实体以包含所有关联数据
+            entity = await db.Solutions
+                .Include(s => s.User)
+                .Include(s => s.AgentConfig).ThenInclude(a => a.User)
+                .Include(s => s.McpConfigs).ThenInclude(m => m.User)
+                .Include(s => s.CustomPrompts).ThenInclude(p => p.User)
+                .Include(s => s.Skills).ThenInclude(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == entity.Id);
+
+            return Results.Created($"/api/solutions/{entity!.Id}", ApiResponse.Ok(entity.ToDetailDto()));
         }).WithName("CreateSolution").WithSummary("创建解决方案");
 
         group.MapPut("/{id:guid}", async (Guid id, ICurrentUser currentUser, AppDbContext db, UpdateSolutionRequest request) =>
@@ -196,6 +217,7 @@ public static class SolutionEndpoints
                 .Include(s => s.AgentConfig).ThenInclude(a => a.User)
                 .Include(s => s.McpConfigs).ThenInclude(m => m.User)
                 .Include(s => s.CustomPrompts).ThenInclude(p => p.User)
+                .Include(s => s.Skills).ThenInclude(s => s.User)
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (entity == null) return Results.NotFound();
             if (entity.UserId != userId) return Results.Forbid();
@@ -227,19 +249,28 @@ public static class SolutionEndpoints
                 foreach (var item in prompts) entity.CustomPrompts.Add(item);
             }
 
+            if (request.SkillIds != null)
+            {
+                entity.Skills.Clear();
+                var skills = await db.Skills.Include(s => s.User).Where(x => request.SkillIds.Contains(x.Id)).ToListAsync();
+                foreach (var item in skills) entity.Skills.Add(item);
+            }
+
             entity.UpdatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync();
 
             // Get liked status for all related resources
             var mcpConfigIds = entity.McpConfigs.Select(m => m.Id).ToList();
             var customPromptIds = entity.CustomPrompts.Select(p => p.Id).ToList();
+            var skillIds = entity.Skills.Select(s => s.Id).ToList();
 
             var likes = await db.UserLikes
                 .Where(l => l.UserId == userId && (
                     (l.ResourceType == LikeResourceType.Solution && l.ResourceId == id) ||
                     (l.ResourceType == LikeResourceType.AgentConfig && l.ResourceId == entity.AgentConfigId) ||
                     (l.ResourceType == LikeResourceType.McpConfig && mcpConfigIds.Contains(l.ResourceId)) ||
-                    (l.ResourceType == LikeResourceType.CustomPrompt && customPromptIds.Contains(l.ResourceId))
+                    (l.ResourceType == LikeResourceType.CustomPrompt && customPromptIds.Contains(l.ResourceId)) ||
+                    (l.ResourceType == LikeResourceType.Skill && skillIds.Contains(l.ResourceId))
                 ))
                 .ToListAsync();
 
@@ -247,8 +278,9 @@ public static class SolutionEndpoints
             var agentConfigIsLiked = likes.Any(l => l.ResourceType == LikeResourceType.AgentConfig && l.ResourceId == entity.AgentConfigId);
             var likedMcpConfigIds = likes.Where(l => l.ResourceType == LikeResourceType.McpConfig).Select(l => l.ResourceId).ToHashSet();
             var likedCustomPromptIds = likes.Where(l => l.ResourceType == LikeResourceType.CustomPrompt).Select(l => l.ResourceId).ToHashSet();
+            var likedSkillIds = likes.Where(l => l.ResourceType == LikeResourceType.Skill).Select(l => l.ResourceId).ToHashSet();
 
-            return Results.Ok(ApiResponse.Ok(entity.ToDetailDto(isLiked, agentConfigIsLiked, likedMcpConfigIds, likedCustomPromptIds)));
+            return Results.Ok(ApiResponse.Ok(entity.ToDetailDto(isLiked, agentConfigIsLiked, likedMcpConfigIds, likedCustomPromptIds, likedSkillIds)));
         }).WithName("UpdateSolution").WithSummary("更新解决方案");
 
         group.MapDelete("/{id:guid}", async (Guid id, ICurrentUser currentUser, AppDbContext db) =>
@@ -314,5 +346,5 @@ public static class SolutionEndpoints
     }
 }
 
-public record CreateSolutionRequest([Required] string Name, string Description, [Required] AiTool AiTool, [Required] Guid AgentConfigId, List<Guid>? McpConfigIds, List<Guid>? CustomPromptIds, List<string>? Tags, bool IsPublic = true, Compatibility? Compatibility = null);
-public record UpdateSolutionRequest(string? Name, string? Description, AiTool? AiTool, Guid? AgentConfigId, List<Guid>? McpConfigIds, List<Guid>? CustomPromptIds, List<string>? Tags, bool? IsPublic, Compatibility? Compatibility);
+public record CreateSolutionRequest([Required] string Name, string Description, [Required] AiTool AiTool, [Required] Guid AgentConfigId, List<Guid>? McpConfigIds, List<Guid>? CustomPromptIds, List<Guid>? SkillIds, List<string>? Tags, bool IsPublic = true, Compatibility? Compatibility = null);
+public record UpdateSolutionRequest(string? Name, string? Description, AiTool? AiTool, Guid? AgentConfigId, List<Guid>? McpConfigIds, List<Guid>? CustomPromptIds, List<Guid>? SkillIds, List<string>? Tags, bool? IsPublic, Compatibility? Compatibility);

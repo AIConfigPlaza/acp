@@ -40,6 +40,7 @@ public class User
     public virtual ICollection<AgentConfig> AgentConfigs { get; set; } = new List<AgentConfig>();
     public virtual ICollection<CustomPrompt> CustomPrompts { get; set; } = new List<CustomPrompt>();
     public virtual ICollection<Solution> Solutions { get; set; } = new List<Solution>();
+    public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
     public virtual ICollection<CliToken> CliTokens { get; set; } = new List<CliToken>();
     public virtual ICollection<UserLike> UserLikes { get; set; } = new List<UserLike>();
 }

@@ -258,6 +258,8 @@ public static class CliEndpoints
             .Include(s => s.AgentConfig).ThenInclude(a => a.User)
             .Include(s => s.McpConfigs).ThenInclude(m => m.User)
             .Include(s => s.CustomPrompts).ThenInclude(p => p.User)
+            .Include(s => s.Skills).ThenInclude(s => s.User)
+            .Include(s => s.Skills).ThenInclude(s => s.SkillResources)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (entity == null)
@@ -292,30 +294,40 @@ public static class CliEndpoints
             customPrompt.Downloads++;
         }
         
+        // 更新关联的 Skills 下载量
+        foreach (var skill in entity.Skills)
+        {
+            skill.Downloads++;
+        }
+        
         await db.SaveChangesAsync();
 
         // 获取所有相关资源的点赞状态
         var mcpConfigIds = entity.McpConfigs.Select(m => m.Id).ToList();
         var customPromptIds = entity.CustomPrompts.Select(p => p.Id).ToList();
+        var skillIds = entity.Skills.Select(s => s.Id).ToList();
 
         var likes = await db.UserLikes
             .Where(l => l.UserId == userId && (
                 (l.ResourceType == LikeResourceType.AgentConfig && l.ResourceId == entity.AgentConfigId) ||
                 (l.ResourceType == LikeResourceType.McpConfig && mcpConfigIds.Contains(l.ResourceId)) ||
-                (l.ResourceType == LikeResourceType.CustomPrompt && customPromptIds.Contains(l.ResourceId))
+                (l.ResourceType == LikeResourceType.CustomPrompt && customPromptIds.Contains(l.ResourceId)) ||
+                (l.ResourceType == LikeResourceType.Skill && skillIds.Contains(l.ResourceId))
             ))
             .ToListAsync();
 
         var agentConfigIsLiked = likes.Any(l => l.ResourceType == LikeResourceType.AgentConfig && l.ResourceId == entity.AgentConfigId);
         var likedMcpConfigIds = likes.Where(l => l.ResourceType == LikeResourceType.McpConfig).Select(l => l.ResourceId).ToHashSet();
         var likedCustomPromptIds = likes.Where(l => l.ResourceType == LikeResourceType.CustomPrompt).Select(l => l.ResourceId).ToHashSet();
+        var likedSkillIds = likes.Where(l => l.ResourceType == LikeResourceType.Skill).Select(l => l.ResourceId).ToHashSet();
 
         return TypedResults.Ok(ApiResponse.Ok(entity.ToCliDetailDto(
             isOwner: isOwner,
             isLiked: isLiked,
             agentConfigIsLiked: agentConfigIsLiked,
             likedMcpConfigIds: likedMcpConfigIds,
-            likedCustomPromptIds: likedCustomPromptIds
+            likedCustomPromptIds: likedCustomPromptIds,
+            likedSkillIds: likedSkillIds
         )));
     }
 

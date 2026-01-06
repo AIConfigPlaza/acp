@@ -11,6 +11,7 @@ public static class ApiEndpoints
         app.MapMcpEndpoints();
         app.MapAgentEndpoints();
         app.MapPromptEndpoints();
+        app.MapSkillEndpoints();
         app.MapSolutionEndpoints();
         app.MapCliTokenEndpoints();
         app.MapCliEndpoints(); // CLI 专用接口

@@ -72,6 +72,50 @@ public static class DtoExtensions
             prompt.UpdatedAt
         );
 
+    public static SkillResourceDto ToDto(this SkillResource resource) =>
+        new(
+            resource.Id,
+            resource.SkillId,
+            resource.RelativePath,
+            resource.FileName,
+            resource.FileContent,
+            resource.CreatedAt,
+            resource.UpdatedAt
+        );
+
+    public static SkillDto ToDto(this Skill skill, bool isLikedByCurrentUser = false) =>
+        new(
+            skill.Id,
+            skill.Name,
+            skill.SkillMarkdown,
+            skill.Tags,
+            skill.IsPublic,
+            skill.Downloads,
+            skill.Likes,
+            skill.Rating,
+            isLikedByCurrentUser,
+            skill.User.ToSummaryDto(),
+            skill.CreatedAt,
+            skill.UpdatedAt
+        );
+
+    public static SkillDetailDto ToDetailDto(this Skill skill, bool isLikedByCurrentUser = false) =>
+        new(
+            skill.Id,
+            skill.Name,
+            skill.SkillMarkdown,
+            skill.Tags,
+            skill.IsPublic,
+            skill.Downloads,
+            skill.Likes,
+            skill.Rating,
+            isLikedByCurrentUser,
+            skill.User.ToSummaryDto(),
+            skill.SkillResources.Select(r => r.ToDto()).ToList(),
+            skill.CreatedAt,
+            skill.UpdatedAt
+        );
+
     public static SolutionDto ToDto(this Solution solution, bool isLikedByCurrentUser = false, bool agentConfigIsLiked = false) =>
         new(
             solution.Id,
@@ -97,7 +141,8 @@ public static class DtoExtensions
         bool isLikedByCurrentUser = false,
         bool agentConfigIsLiked = false,
         HashSet<Guid>? likedMcpConfigIds = null,
-        HashSet<Guid>? likedCustomPromptIds = null) =>
+        HashSet<Guid>? likedCustomPromptIds = null,
+        HashSet<Guid>? likedSkillIds = null) =>
         new(
             solution.Id,
             solution.Name,
@@ -115,6 +160,7 @@ public static class DtoExtensions
             solution.AgentConfig?.ToDto(agentConfigIsLiked),
             solution.McpConfigs.Select(m => m.ToDto(likedMcpConfigIds?.Contains(m.Id) ?? false)).ToList(),
             solution.CustomPrompts.Select(p => p.ToDto(likedCustomPromptIds?.Contains(p.Id) ?? false)).ToList(),
+            solution.Skills.Select(s => s.ToDto(likedSkillIds?.Contains(s.Id) ?? false)).ToList(),
             solution.CreatedAt,
             solution.UpdatedAt
         );
@@ -162,7 +208,8 @@ public static class DtoExtensions
         bool isLiked,
         bool agentConfigIsLiked = false,
         HashSet<Guid>? likedMcpConfigIds = null,
-        HashSet<Guid>? likedCustomPromptIds = null) =>
+        HashSet<Guid>? likedCustomPromptIds = null,
+        HashSet<Guid>? likedSkillIds = null) =>
         new(
             solution.Id,
             solution.Name,
@@ -187,6 +234,9 @@ public static class DtoExtensions
             solution.CustomPrompts.Select(p => p.ToCliDto(
                 isOwner: p.UserId == solution.UserId,
                 isLiked: likedCustomPromptIds?.Contains(p.Id) ?? false)).ToList(),
+            solution.Skills.Select(s => s.ToCliDto(
+                isOwner: s.UserId == solution.UserId,
+                isLiked: likedSkillIds?.Contains(s.Id) ?? false)).ToList(),
             solution.CreatedAt,
             solution.UpdatedAt
         );
@@ -253,6 +303,41 @@ public static class DtoExtensions
             config.User.ToSummaryDto(),
             config.CreatedAt,
             config.UpdatedAt
+        );
+
+    /// <summary>
+    /// 转换为 CLI 专用 SkillResource DTO
+    /// </summary>
+    public static CliSkillResourceDto ToCliDto(this SkillResource resource) =>
+        new(
+            resource.Id,
+            resource.SkillId,
+            resource.RelativePath,
+            resource.FileName,
+            resource.FileContent,
+            resource.CreatedAt,
+            resource.UpdatedAt
+        );
+
+    /// <summary>
+    /// 转换为 CLI 专用 Skill DTO
+    /// </summary>
+    public static CliSkillDto ToCliDto(this Skill skill, bool isOwner, bool isLiked) =>
+        new(
+            skill.Id,
+            skill.Name,
+            skill.SkillMarkdown,
+            skill.Tags,
+            skill.IsPublic,
+            isOwner,
+            isLiked,
+            skill.Downloads,
+            skill.Likes,
+            skill.Rating,
+            skill.User.ToSummaryDto(),
+            skill.SkillResources.Select(r => r.ToCliDto()).ToList(),
+            skill.CreatedAt,
+            skill.UpdatedAt
         );
 
     #endregion

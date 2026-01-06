@@ -22,5 +22,6 @@ public enum LikeResourceType
     McpConfig = 0,
     AgentConfig = 1,
     CustomPrompt = 2,
-    Solution = 3
+    Solution = 3,
+    Skill = 4
 }
