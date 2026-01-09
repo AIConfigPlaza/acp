@@ -309,7 +309,7 @@ export async function applySkills(
       for (const resource of skill.skillResources) {
         // 确保相对路径安全（防止路径遍历攻击）
         const safeRelativePath = sanitizePath(resource.relativePath)
-        const resourceFilePath = path.join(skillDirPath, safeRelativePath)
+        const resourceFilePath = path.join(skillDirPath, safeRelativePath, resource.fileName)
 
         // 检查文件是否存在
         const fileExists = await fs.pathExists(resourceFilePath)
