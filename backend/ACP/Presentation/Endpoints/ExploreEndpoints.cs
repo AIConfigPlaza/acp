@@ -39,6 +39,10 @@ public static class ExploreEndpoints
             .WithName("ExploreMcps")
             .WithSummary("获取MCP配置列表");
 
+        group.MapGet("/skills", GetSkills)
+            .WithName("ExploreSkills")
+            .WithSummary("获取Skills列表");
+
         return app;
     }
 
@@ -61,14 +65,16 @@ public static class ExploreEndpoints
         var agentsTask = QueryAgents(db, currentUser, page, limit, search, sortBy);
         var promptsTask = QueryPrompts(db, currentUser, page, limit, search, sortBy);
         var mcpsTask = QueryMcps(db, currentUser, page, limit, search, sortBy);
+        var skillsTask = QuerySkills(db, currentUser, page, limit, search, sortBy);
 
-        await Task.WhenAll(solutionsTask, agentsTask, promptsTask, mcpsTask);
+        await Task.WhenAll(solutionsTask, agentsTask, promptsTask, mcpsTask, skillsTask);
 
         var result = new ExploreAggregateDto(
             Solutions: new ExplorePagedList<SolutionDto>(solutionsTask.Result.Items, solutionsTask.Result.Total),
             Agents: new ExplorePagedList<AgentConfigDto>(agentsTask.Result.Items, agentsTask.Result.Total),
             Prompts: new ExplorePagedList<CustomPromptDto>(promptsTask.Result.Items, promptsTask.Result.Total),
-            Mcps: new ExplorePagedList<McpConfigDto>(mcpsTask.Result.Items, mcpsTask.Result.Total)
+            Mcps: new ExplorePagedList<McpConfigDto>(mcpsTask.Result.Items, mcpsTask.Result.Total),
+            Skills: new ExplorePagedList<SkillDto>(skillsTask.Result.Items, skillsTask.Result.Total)
         );
 
         return Results.Ok(ApiResponse.Ok(result, new PaginationMeta(page, limit, 0)));
@@ -143,6 +149,24 @@ public static class ExploreEndpoints
         limit = limit is <= 0 or > 100 ? 20 : limit;
 
         var result = await QueryMcps(db, currentUser, page, limit, search, sortBy);
+        return Results.Ok(ApiResponse.Ok(result.Items, new PaginationMeta(page, limit, result.Total)));
+    }
+
+    /// <summary>
+    /// 分页查询Skills列表
+    /// </summary>
+    private static async Task<IResult> GetSkills(
+        ICurrentUser currentUser,
+        AppDbContext db,
+        [FromQuery] int page = 1,
+        [FromQuery] int limit = 20,
+        [FromQuery] string? search = null,
+        [FromQuery] ExploreSortBy sortBy = ExploreSortBy.Likes)
+    {
+        page = page <= 0 ? 1 : page;
+        limit = limit is <= 0 or > 100 ? 20 : limit;
+
+        var result = await QuerySkills(db, currentUser, page, limit, search, sortBy);
         return Results.Ok(ApiResponse.Ok(result.Items, new PaginationMeta(page, limit, result.Total)));
     }
 
@@ -335,6 +359,50 @@ public static class ExploreEndpoints
         return (dtos, total);
     }
 
+    private static async Task<(List<SkillDto> Items, int Total)> QuerySkills(
+        AppDbContext db, ICurrentUser currentUser, int page, int limit, string? search, ExploreSortBy sortBy)
+    {
+        var query = db.Skills
+            .Include(s => s.User)
+            .Where(s => s.IsPublic)
+            .AsQueryable();
+
+        // 名称模糊查询
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(s => EF.Functions.ILike(s.Name, $"%{search}%") || 
+                                     EF.Functions.ILike(s.SkillMarkdown, $"%{search}%"));
+        }
+
+        // 排序
+        query = sortBy switch
+        {
+            ExploreSortBy.Likes => query.OrderByDescending(s => s.Likes).ThenByDescending(s => s.CreatedAt),
+            ExploreSortBy.Downloads => query.OrderByDescending(s => s.Downloads).ThenByDescending(s => s.CreatedAt),
+            ExploreSortBy.CreatedAt => query.OrderByDescending(s => s.CreatedAt),
+            _ => query.OrderByDescending(s => s.Likes).ThenByDescending(s => s.CreatedAt)
+        };
+
+        var total = await query.CountAsync();
+        var items = await query.Skip((page - 1) * limit).Take(limit).ToListAsync();
+
+        // 获取当前用户点赞状态
+        var likedIds = new HashSet<Guid>();
+        if (currentUser.IsAuthenticated && currentUser.UserId.HasValue)
+        {
+            var resourceIds = items.Select(s => s.Id).ToList();
+            likedIds = (await db.UserLikes
+                .Where(l => l.UserId == currentUser.UserId.Value && 
+                            l.ResourceType == LikeResourceType.Skill && 
+                            resourceIds.Contains(l.ResourceId))
+                .Select(l => l.ResourceId)
+                .ToListAsync()).ToHashSet();
+        }
+
+        var dtos = items.Select(s => s.ToDto(likedIds.Contains(s.Id))).ToList();
+        return (dtos, total);
+    }
+
     #endregion
 }
 
@@ -371,5 +439,6 @@ public record ExploreAggregateDto(
     ExplorePagedList<SolutionDto> Solutions,
     ExplorePagedList<AgentConfigDto> Agents,
     ExplorePagedList<CustomPromptDto> Prompts,
-    ExplorePagedList<McpConfigDto> Mcps
+    ExplorePagedList<McpConfigDto> Mcps,
+    ExplorePagedList<SkillDto> Skills
 );

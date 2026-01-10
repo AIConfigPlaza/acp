@@ -186,13 +186,22 @@ public static class SkillEndpoints
             entity.IsPublic = request.IsPublic ?? entity.IsPublic;
             entity.UpdatedAt = DateTime.UtcNow;
 
-            // 更新 SkillResources：先删除所有现有的，然后添加新的
+            // 更新 SkillResources：先显式删除所有现有的，然后添加新的
             if (request.SkillResources != null)
             {
-                entity.SkillResources.Clear();
+                // 显式从数据库中删除现有的 SkillResources
+                var existingResources = await db.SkillResources
+                    .Where(r => r.SkillId == entity.Id)
+                    .ToListAsync();
+                if (existingResources.Any())
+                {
+                    db.SkillResources.RemoveRange(existingResources);
+                }
+
+                // 添加新的 SkillResources
                 foreach (var resourceRequest in request.SkillResources)
                 {
-                    entity.SkillResources.Add(new SkillResource
+                    var newResource = new SkillResource
                     {
                         Id = Guid.NewGuid(),
                         SkillId = entity.Id,
@@ -202,7 +211,8 @@ public static class SkillEndpoints
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
                         Skill = entity
-                    });
+                    };
+                    db.SkillResources.Add(newResource);
                 }
             }
 
