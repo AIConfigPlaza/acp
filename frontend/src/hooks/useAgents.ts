@@ -16,6 +16,7 @@ export interface Agent {
   downloads: number;
   likes: number;
   rating: number | null;
+  isLikedByCurrentUser?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +41,7 @@ function dtoToAgent(dto: AgentConfigDto): Agent {
     downloads: dto.downloads,
     likes: dto.likes,
     rating: dto.rating || null,
+    isLikedByCurrentUser: dto.isLikedByCurrentUser,
     created_at: dto.createdAt,
     updated_at: dto.updatedAt,
   };
@@ -75,10 +77,17 @@ export function useAgents() {
         ),
       ]);
 
-      // 合并两个列表（public接口不包含用户自己创建的，所以不会有重复）
+      const mineAgents = mineResult.data.map(dtoToAgent);
+      const publicAgents = publicResult.data.map(dtoToAgent);
+      
+      // 去重：如果 public 中的配置已经在 mine 中（通过 id 判断），则排除
+      const mineIds = new Set(mineAgents.map(a => a.id));
+      const uniquePublicAgents = publicAgents.filter(a => !mineIds.has(a.id));
+
+      // 合并两个列表用于向后兼容
       const allAgents = [
-        ...mineResult.data.map(dtoToAgent),
-        ...publicResult.data.map(dtoToAgent),
+        ...mineAgents,
+        ...uniquePublicAgents,
       ];
 
       return allAgents;

@@ -100,7 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             code, 
-            redirectUri: REDIRECT_URI 
+            redirectUri: REDIRECT_URI,
+            clientId: GITHUB_CLIENT_ID
           }),
         });
 

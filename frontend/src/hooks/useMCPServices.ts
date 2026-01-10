@@ -16,6 +16,7 @@ export interface MCPService {
   downloads: number;
   likes: number;
   rating: number | null;
+  isLikedByCurrentUser?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +52,7 @@ function dtoToService(dto: McpConfigDto): MCPService {
     downloads: dto.downloads,
     likes: dto.likes,
     rating: dto.rating || null,
+    isLikedByCurrentUser: dto.isLikedByCurrentUser,
     created_at: dto.createdAt,
     updated_at: dto.updatedAt,
   };
@@ -86,10 +88,17 @@ export function useMCPServices() {
         ),
       ]);
 
-      // 合并两个列表（public接口不包含用户自己创建的，所以不会有重复）
+      const mineServices = mineResult.data.map(dtoToService);
+      const publicServices = publicResult.data.map(dtoToService);
+      
+      // 去重：如果 public 中的配置已经在 mine 中（通过 id 判断），则排除
+      const mineIds = new Set(mineServices.map(s => s.id));
+      const uniquePublicServices = publicServices.filter(s => !mineIds.has(s.id));
+
+      // 合并两个列表用于向后兼容
       const allServices = [
-        ...mineResult.data.map(dtoToService),
-        ...publicResult.data.map(dtoToService),
+        ...mineServices,
+        ...uniquePublicServices,
       ];
 
       return allServices;

@@ -16,7 +16,7 @@ export interface Author {
  */
 export interface ExploreItem {
   id: string;
-  type: "solutions" | "mcp" | "agents" | "prompts";
+  type: "solutions" | "mcp" | "agents" | "prompts" | "skills";
   name: string;
   description: string | null;
   tags: string[] | null;

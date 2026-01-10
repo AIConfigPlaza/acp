@@ -16,7 +16,8 @@ import { Solution } from "@/hooks/useSolutions";
 import { useAgents } from "@/hooks/useAgents";
 import { useMCPServices } from "@/hooks/useMCPServices";
 import { usePrompts } from "@/hooks/usePrompts";
-import { X, Plus, Search, Globe, Lock } from "lucide-react";
+import { useSkills } from "@/hooks/useSkills";
+import { X, Plus, Search, Globe, Lock, Star } from "lucide-react";
 
 interface SolutionDialogProps {
   open: boolean;
@@ -25,10 +26,12 @@ interface SolutionDialogProps {
   onSave: (data: Partial<Solution> & {
     mcp_service_ids?: string[];
     prompt_ids?: { id: string; step_order: number }[];
+    skill_ids?: string[];
   }) => void;
   initialAssociations?: {
     mcp_service_ids: string[];
     prompt_ids: { id: string; step_order: number }[];
+    skill_ids: string[];
   };
 }
 
@@ -46,6 +49,7 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
   const { agents } = useAgents();
   const { services: mcpServices } = useMCPServices();
   const { prompts } = usePrompts();
+  const { skills } = useSkills();
   
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -56,8 +60,10 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
   const [tagInput, setTagInput] = useState("");
   const [selectedMCPs, setSelectedMCPs] = useState<string[]>([]);
   const [selectedPrompts, setSelectedPrompts] = useState<{ id: string; step_order: number }[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [mcpSearch, setMcpSearch] = useState("");
   const [promptSearch, setPromptSearch] = useState("");
+  const [skillSearch, setSkillSearch] = useState("");
 
   useEffect(() => {
     if (solution) {
@@ -79,12 +85,15 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
     if (initialAssociations) {
       setSelectedMCPs(initialAssociations.mcp_service_ids);
       setSelectedPrompts(initialAssociations.prompt_ids);
+      setSelectedSkills(initialAssociations.skill_ids || []);
     } else {
       setSelectedMCPs([]);
       setSelectedPrompts([]);
+      setSelectedSkills([]);
     }
     setMcpSearch("");
     setPromptSearch("");
+    setSkillSearch("");
   }, [solution, open, initialAssociations]);
 
   const handleAddTag = () => {
@@ -113,17 +122,23 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
     });
   };
 
+  const handleToggleSkill = (id: string) => {
+    setSelectedSkills(prev =>
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
+  };
+
   // Filter and group MCP services
   const { myMCPs, publicMCPs } = useMemo(() => {
     const filtered = mcpServices.filter(s => 
       s.name.toLowerCase().includes(mcpSearch.toLowerCase()) ||
       s.description?.toLowerCase().includes(mcpSearch.toLowerCase())
     );
-    // 我的：user_id 等于当前用户 ID（来自 /mine 接口）
-    // 公开的：user_id 不等于当前用户 ID（来自 /public 接口）
+    // 我的：user_id 等于当前用户 ID 或 isLikedByCurrentUser === true（来自 /mine 接口）
+    // 公开的：user_id 不等于当前用户 ID 且 isLikedByCurrentUser !== true（来自 /public 接口）
     return {
-      myMCPs: filtered.filter(s => user && s.user_id === user.id),
-      publicMCPs: filtered.filter(s => !user || s.user_id !== user.id),
+      myMCPs: filtered.filter(s => user && (s.user_id === user.id || s.isLikedByCurrentUser === true)),
+      publicMCPs: filtered.filter(s => !user || (s.user_id !== user.id && s.isLikedByCurrentUser !== true)),
     };
   }, [mcpServices, mcpSearch, user]);
 
@@ -133,13 +148,27 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
       p.name.toLowerCase().includes(promptSearch.toLowerCase()) ||
       p.description?.toLowerCase().includes(promptSearch.toLowerCase())
     );
-    // 我的：user_id 等于当前用户 ID（来自 /mine 接口）
-    // 公开的：user_id 不等于当前用户 ID（来自 /public 接口）
+    // 我的：user_id 等于当前用户 ID 或 isLikedByCurrentUser === true（来自 /mine 接口）
+    // 公开的：user_id 不等于当前用户 ID 且 isLikedByCurrentUser !== true（来自 /public 接口）
     return {
-      myPrompts: filtered.filter(p => user && p.user_id === user.id),
-      publicPrompts: filtered.filter(p => !user || p.user_id !== user.id),
+      myPrompts: filtered.filter(p => user && (p.user_id === user.id || p.isLikedByCurrentUser === true)),
+      publicPrompts: filtered.filter(p => !user || (p.user_id !== user.id && p.isLikedByCurrentUser !== true)),
     };
   }, [prompts, promptSearch, user]);
+
+  // Filter and group Skills
+  const { mySkills, publicSkills } = useMemo(() => {
+    const filtered = skills.filter(s => 
+      s.name.toLowerCase().includes(skillSearch.toLowerCase()) ||
+      s.description?.toLowerCase().includes(skillSearch.toLowerCase())
+    );
+    // 我的：user_id 等于当前用户 ID 或 isLikedByCurrentUser === true（来自 /mine 接口）
+    // 公开的：user_id 不等于当前用户 ID 且 isLikedByCurrentUser !== true（来自 /public 接口）
+    return {
+      mySkills: filtered.filter(s => user && (s.user_id === user.id || s.isLikedByCurrentUser === true)),
+      publicSkills: filtered.filter(s => !user || (s.user_id !== user.id && s.isLikedByCurrentUser !== true)),
+    };
+  }, [skills, skillSearch, user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,6 +182,7 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
       tags,
       mcp_service_ids: selectedMCPs,
       prompt_ids: selectedPrompts,
+      skill_ids: selectedSkills,
     });
     onOpenChange(false);
   };
@@ -218,6 +248,35 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
     );
   };
 
+  const renderSkillItem = (skill: typeof skills[0]) => {
+    const isSelected = selectedSkills.includes(skill.id);
+    return (
+      <div 
+        key={skill.id} 
+        className={`flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+          isSelected ? 'bg-primary/10 border border-primary/30' : 'hover:bg-surface-3'
+        }`}
+        onClick={() => handleToggleSkill(skill.id)}
+      >
+        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+          isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/50'
+        }`}>
+          {isSelected && <span className="text-primary-foreground text-xs">✓</span>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Star size={14} className="text-cyan-400 shrink-0" />
+            <span className="text-sm font-medium truncate">{skill.name}</span>
+            {skill.is_public && <Globe size={12} className="text-muted-foreground shrink-0" />}
+          </div>
+          {/* {skill.description && (
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{skill.description}</p>
+          )} */}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-border max-w-3xl max-h-[90vh]">
@@ -226,7 +285,7 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
             {solution ? t("dialog_edit_solution") : t("dialog_new_solution")}
           </DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[70vh] pr-4">
+        <ScrollArea className="max-h-[70vh] pr-4 custom-scrollbar">
           <form onSubmit={handleSubmit} className="space-y-6" style={{ padding: '4px' }}>
             {/* Basic Info */}
             <div className="space-y-4">
@@ -432,6 +491,61 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
                         </p>
                       ) : (
                         <div className="space-y-1">{publicPrompts.map(renderPromptItem)}</div>
+                      )}
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              </div>
+            </div>
+
+            {/* Skills Selection */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Skills</Label>
+                <span className="text-xs text-muted-foreground">
+                  {selectedSkills.length} {t("dialog_selected")}
+                </span>
+              </div>
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={skillSearch}
+                  onChange={(e) => setSkillSearch(e.target.value)}
+                  placeholder="搜索 Skills..."
+                  className="bg-surface-2 pl-9"
+                />
+              </div>
+              <div className="border border-border rounded-lg bg-surface-2 flex flex-col overflow-hidden w-full">
+                <Tabs defaultValue="my" className="w-full flex flex-col min-w-0">
+                  <div className="w-full overflow-hidden min-w-0">
+                    <TabsList className="w-full grid grid-cols-[1fr_1fr] h-9 p-0 rounded-t-lg rounded-b-none bg-muted/50 border-b border-border shrink-0 relative z-10">
+                      <TabsTrigger value="my" className="text-xs rounded-none rounded-tl-lg w-full min-w-0 max-w-full overflow-hidden h-full flex items-center justify-start px-3 whitespace-normal">
+                        <Lock size={12} className="mr-1 shrink-0" />
+                        <span className="truncate min-w-0 flex-1">{t("dialog_my")} ({mySkills.length})</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="public" className="text-xs rounded-none rounded-tr-lg w-full min-w-0 max-w-full overflow-hidden h-full flex items-center justify-start px-3 whitespace-normal">
+                        <Globe size={12} className="mr-1 shrink-0" />
+                        <span className="truncate min-w-0 flex-1">{t("dialog_public_label")} ({publicSkills.length})</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+                  <div className="overflow-hidden max-h-40">
+                    <TabsContent value="my" className="p-2 overflow-y-auto mt-0 max-h-40">
+                      {mySkills.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          没有可用的 Skills
+                        </p>
+                      ) : (
+                        <div className="space-y-1">{mySkills.map(renderSkillItem)}</div>
+                      )}
+                    </TabsContent>
+                    <TabsContent value="public" className="p-2 overflow-y-auto mt-0 max-h-40">
+                      {publicSkills.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          没有公开的 Skills
+                        </p>
+                      ) : (
+                        <div className="space-y-1">{publicSkills.map(renderSkillItem)}</div>
                       )}
                     </TabsContent>
                   </div>

@@ -25,6 +25,7 @@ export const translations = {
     nav_personas: "Agents",
     nav_prompts: "Prompts",
     nav_plans: "Solutions",
+    nav_skills: "Skills",
     nav_cli: "CLI Guide",
     nav_settings: "Settings",
     
@@ -50,6 +51,7 @@ export const translations = {
     stats_mcp: "MCP Services",
     stats_personas: "Agents",
     stats_prompts: "Prompts",
+    stats_skills: "Skills",
     stats_plans: "Active Solutions",
     stats_trend: "from last week",
     
@@ -76,6 +78,11 @@ export const translations = {
     prompts_tool: "Tool",
     prompts_variables: "variables",
     prompts_search: "Search prompts...",
+    
+    // Skills
+    skills_title: "Skills",
+    skills_description: "Create and manage reusable skills",
+    skills_add: "Add Skill",
     
     // Plans/Solutions
     plans_title: "Solutions",
@@ -152,6 +159,8 @@ export const translations = {
     dialog_new_mcp: "New MCP Service",
     dialog_edit_prompt: "Edit Prompt",
     dialog_new_prompt: "New Prompt",
+    dialog_edit_skill: "Edit Skill",
+    dialog_new_skill: "New Skill",
     dialog_name: "Name",
     dialog_description: "Description",
     dialog_tags: "Tags",
@@ -163,6 +172,9 @@ export const translations = {
     dialog_public_solution_desc: "Allow others to view and use this solution",
     dialog_public_mcp_desc: "Allow others to view and use this service",
     dialog_public_prompt_desc: "Allow others to view and use this prompt",
+    dialog_public_skill_desc: "Allow others to view and use this skill",
+    dialog_skill_content: "Content",
+    dialog_skill_content_placeholder: "Enter skill content...",
     dialog_config_json: "Configuration JSON",
     dialog_target_ai_tool: "Target AI Tool",
     dialog_select_agent: "Select Agent",
@@ -187,6 +199,7 @@ export const translations = {
     page_no_solutions: "No solutions yet. Click above to add one.",
     page_no_mcp: "No MCP services yet. Click above to add one.",
     page_no_prompts: "No prompts yet. Click above to add one.",
+    page_no_skills: "No skills yet. Click above to add one.",
     page_no_prompts_search: "No prompts found matching your search",
     page_no_solutions_dashboard: "No solutions yet. Create one to get started.",
     page_public: "Public",
@@ -227,6 +240,7 @@ export const translations = {
     nav_personas: "Agents",
     nav_prompts: "提示词模板",
     nav_plans: "Solutions",
+    nav_skills: "技能",
     nav_cli: "CLI 指南",
     nav_settings: "设置",
     
@@ -252,6 +266,7 @@ export const translations = {
     stats_mcp: "MCP 服务",
     stats_personas: "Agents",
     stats_prompts: "提示词模板",
+    stats_skills: "技能",
     stats_plans: "活跃方案",
     stats_trend: "较上周",
     
@@ -278,6 +293,11 @@ export const translations = {
     prompts_tool: "工具",
     prompts_variables: "个变量",
     prompts_search: "搜索提示词...",
+    
+    // Skills
+    skills_title: "技能",
+    skills_description: "创建和管理可复用的技能",
+    skills_add: "添加技能",
     
     // Plans/Solutions
     plans_title: "Solutions",
@@ -354,6 +374,8 @@ export const translations = {
     dialog_new_mcp: "新建 MCP 服务",
     dialog_edit_prompt: "编辑提示词",
     dialog_new_prompt: "新建提示词",
+    dialog_edit_skill: "编辑技能",
+    dialog_new_skill: "新建技能",
     dialog_name: "名称",
     dialog_description: "描述",
     dialog_tags: "标签",
@@ -365,6 +387,9 @@ export const translations = {
     dialog_public_solution_desc: "允许其他用户查看和使用此方案",
     dialog_public_mcp_desc: "允许其他用户查看和使用此服务",
     dialog_public_prompt_desc: "允许其他用户查看和使用此提示词",
+    dialog_public_skill_desc: "允许其他用户查看和使用此技能",
+    dialog_skill_content: "内容",
+    dialog_skill_content_placeholder: "输入技能内容...",
     dialog_config_json: "配置 JSON",
     dialog_target_ai_tool: "目标 AI 工具",
     dialog_select_agent: "选择 Agent",
@@ -389,6 +414,7 @@ export const translations = {
     page_no_solutions: "暂无方案，点击上方按钮添加",
     page_no_mcp: "暂无 MCP 服务，点击上方按钮添加",
     page_no_prompts: "暂无提示词，点击上方按钮添加",
+    page_no_skills: "暂无技能，点击上方按钮添加",
     page_no_prompts_search: "未找到匹配的提示词",
     page_no_solutions_dashboard: "暂无方案，去创建一个吧",
     page_public: "公开",

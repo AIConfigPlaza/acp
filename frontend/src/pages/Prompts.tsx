@@ -35,9 +35,10 @@ export default function Prompts() {
   const [deletingPrompt, setDeletingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter to show only user's own prompts in dashboard
+  // Filter to show only user's own prompts and liked prompts
+  // mine 接口返回自己创建的和已点赞的（isLikedByCurrentUser === true）
   const myPrompts = prompts.filter(p => 
-    demoMode ? p.user_id === "demo-user" : p.user_id === user?.id
+    demoMode ? p.user_id === "demo-user" : (p.user_id === user?.id || p.isLikedByCurrentUser === true)
   );
 
   const filteredPrompts = myPrompts.filter(prompt =>
@@ -158,26 +159,33 @@ export default function Prompts() {
                       ) : (
                         <Lock size={12} className="text-muted-foreground" />
                       )}
+                      {prompt.isLikedByCurrentUser === true && prompt.user_id !== user?.id && (
+                        <span title="已点赞">
+                          <Heart size={12} className="text-rose-500 fill-rose-500" />
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8">
-                      <MoreVertical size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(prompt)}>
-                      <Edit size={14} className="mr-2" />
-                      {t("edit")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDelete(prompt)} className="text-destructive">
-                      <Trash2 size={14} className="mr-2" />
-                      {t("delete")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {prompt.isLikedByCurrentUser !== true || prompt.user_id === user?.id ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8">
+                        <MoreVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(prompt)}>
+                        <Edit size={14} className="mr-2" />
+                        {t("edit")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDelete(prompt)} className="text-destructive">
+                        <Trash2 size={14} className="mr-2" />
+                        {t("delete")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
               </div>
 
               {/* Description */}

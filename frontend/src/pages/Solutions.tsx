@@ -31,6 +31,7 @@ export default function Solutions() {
   const [editAssociations, setEditAssociations] = useState<{
     mcp_service_ids: string[];
     prompt_ids: { id: string; step_order: number }[];
+    skill_ids: string[];
   } | undefined>();
 
   const handleSave = (data: {
@@ -44,6 +45,7 @@ export default function Solutions() {
     tags?: string[];
     mcp_service_ids?: string[];
     prompt_ids?: { id: string; step_order: number }[];
+    skill_ids?: string[];
   }) => {
     if (data.id) {
       update(data as Parameters<typeof update>[0]);
@@ -124,6 +126,11 @@ export default function Solutions() {
                       ) : (
                         <Lock size={14} className="text-muted-foreground" />
                       )}
+                      {solution.isLikedByCurrentUser === true && solution.user_id !== user?.id && (
+                        <span title="已点赞">
+                          <Heart size={14} className="text-rose-500 fill-rose-500" />
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">{solution.description || "-"}</p>
                     
@@ -140,14 +147,16 @@ export default function Solutions() {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(solution)}>
-                    <Settings2 size={16} />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(solution)}>
-                    <Trash2 size={16} className="text-destructive" />
-                  </Button>
-                </div>
+                {solution.isLikedByCurrentUser !== true || solution.user_id === user?.id ? (
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(solution)}>
+                      <Settings2 size={16} />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(solution)}>
+                      <Trash2 size={16} className="text-destructive" />
+                    </Button>
+                  </div>
+                ) : null}
               </div>
 
               {/* Solution Details */}
@@ -181,9 +190,11 @@ export default function Solutions() {
                 <span className="text-xs text-muted-foreground">
                   {t("updated")} {new Date(solution.updated_at).toLocaleDateString()}
                 </span>
-                <Button variant="outline" size="sm" onClick={() => handleEdit(solution)}>
-                  {t("page_edit")}
-                </Button>
+                {solution.isLikedByCurrentUser !== true || solution.user_id === user?.id ? (
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(solution)}>
+                    {t("page_edit")}
+                  </Button>
+                ) : null}
               </div>
             </div>
           ))}
