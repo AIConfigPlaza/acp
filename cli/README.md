@@ -26,7 +26,8 @@ npm install -g @ai-config-plaza/acp-cli
 # 使用 pnpm
 pnpm add -g @ai-config-plaza/acp-cli
 
-# 使用 yarn
+│   │   ├── locale.ts     # 语言切换命令
+│   │   └── update.ts     # 自更新命令
 yarn global add @ai-config-plaza/acp-cli
 ```
 
@@ -65,8 +66,22 @@ acp login
 
 ```bash
 # 在当前目录应用配置
-acp apply
 
+### `acp update`
+
+更新 ACP CLI 到最新版本。
+
+**选项**：
+- `-t, --target <target>`：更新目标（`global` 全局，`local` 本地项目；默认 `global`）
+
+**示例**：
+```bash
+# 全局更新（推荐）
+acp update
+
+# 指定本地更新
+acp update --target local
+```
 # 指定 IDE 类型
 acp apply --ide vscode
 

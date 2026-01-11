@@ -98,6 +98,29 @@ export const zhCN = {
     restartHint: '提示: 已生效，新命令将使用所选语言'
   },
 
+  // update 命令
+  update: {
+    command: 'update',
+    description: '更新 ACP CLI 到最新版本',
+    title: '⬆️ CLI 自更新',
+    currentVersion: '当前版本',
+    latestVersion: '最新版本',
+    alreadyLatest: '已是最新版本，无需更新',
+    checkingLatest: '正在检查最新版本...',
+    fetchFailed: '获取最新版本失败',
+    selectTarget: '请选择更新目标:',
+    targets: {
+      global: '全局 (推荐)',
+      local: '本地项目'
+    },
+    noPkgManager: '未检测到可用的包管理器 (pnpm/npm/yarn)',
+    selectPkgManager: '请选择包管理器:',
+    executing: '正在使用 {manager} 执行更新...',
+    success: '更新成功！',
+    failed: '更新失败',
+    verifyHint: '提示: 运行 acp -v 查看当前版本'
+  },
+
   // 错误处理
   error: {
     errorCode: '错误代码:',

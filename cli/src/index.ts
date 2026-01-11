@@ -5,6 +5,7 @@ import chalk from 'chalk'
 import { loginCommand } from './commands/login.js'
 import { applyCommand } from './commands/apply.js'
 import { localeCommand } from './commands/locale.js'
+import { updateCommand } from './commands/update.js'
 import { handleError } from './utils/logger.js'
 import { t } from './i18n/index.js'
 
@@ -31,6 +32,7 @@ async function main() {
   program.addCommand(loginCommand)
   program.addCommand(applyCommand)
   program.addCommand(localeCommand)
+  program.addCommand(updateCommand)
 
   // 自定义帮助显示
   program.on('--help', async () => {
@@ -39,6 +41,7 @@ async function main() {
     console.log(chalk.gray('  $ acp apply'))
     console.log(chalk.gray('  $ acp apply --ide vscode --dir ./my-project'))
     console.log(chalk.gray('  $ acp locale'))
+    console.log(chalk.gray('  $ acp update'))
     console.log()
   })
 

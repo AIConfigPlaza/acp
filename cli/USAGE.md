@@ -398,6 +398,44 @@ acp locale
 - 支持中文（zh-CN）和英文（en-US）
 - 语言配置保存在 `~/.acp/locale`
 - 可通过 `ACP_CLI_LOCALE` 环境变量覆盖
+
+---
+
+### `acp update`
+
+更新 ACP CLI 到最新版本。
+
+**用法：**
+```bash
+acp update
+acp update --target global   # 全局更新（推荐）
+acp update --target local    # 本地项目更新
+```
+
+**交互过程：**
+```
+⬆️ CLI 自更新
+
+当前版本: 1.x.x
+最新版本: 1.y.y
+? 请选择更新目标: (Use arrow keys)
+❯ 全局 (推荐)
+  本地项目
+
+? 请选择包管理器:
+❯ pnpm
+  npm
+  yarn
+
+→ 正在使用 pnpm 执行更新...
+✓ 更新成功！
+
+提示: 运行 acp -v 查看当前版本
+```
+
+**说明：**
+- 默认执行全局更新；如需更新本地依赖请选择 `--target local`
+- 包管理器优先级：pnpm > npm > yarn（如检测到多个将询问）
 - 切换后立即生效，无需重启
 
 **示例：**

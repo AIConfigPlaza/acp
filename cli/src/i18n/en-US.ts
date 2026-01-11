@@ -98,6 +98,29 @@ export const enUS = {
     restartHint: 'Tip: Changes take effect immediately for new commands'
   },
 
+  // update command
+  update: {
+    command: 'update',
+    description: 'Update ACP CLI to latest version',
+    title: '⬆️ CLI Self Update',
+    currentVersion: 'Current Version',
+    latestVersion: 'Latest Version',
+    alreadyLatest: 'Already up to date',
+    checkingLatest: 'Checking latest version...',
+    fetchFailed: 'Failed to fetch latest version',
+    selectTarget: 'Select update target:',
+    targets: {
+      global: 'Global (Recommended)',
+      local: 'Local Project'
+    },
+    noPkgManager: 'No available package manager detected (pnpm/npm/yarn)',
+    selectPkgManager: 'Select a package manager:',
+    executing: 'Executing update with {manager}...',
+    success: 'Update successful!',
+    failed: 'Update failed',
+    verifyHint: 'Tip: Run acp -v to verify current version'
+  },
+
   // Error handling
   error: {
     errorCode: 'Error Code:',

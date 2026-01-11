@@ -1,6 +1,6 @@
 {
   "name": "@ai-config-plaza/acp-cli",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "AI-Config-Plaza CLI 工具 - 统一 AI 编程工具配置管理",
   "type": "module",
   "main": "./dist/index.js",
