@@ -69,8 +69,8 @@ export function usePrompts() {
       // 同时获取当前用户自己创建的Prompt列表和所有公开的Prompt列表
       const [mineResult, publicResult] = await Promise.all([
         apiRequest<PromptDto[]>(
-          "/api/custom-prompts/mine?page=1&limit=100",
-          { authToken, requireAuth: true }
+        "/api/custom-prompts/mine?page=1&limit=100",
+        { authToken, requireAuth: true }
         ),
         apiRequest<PromptDto[]>(
           "/api/custom-prompts/public?page=1&limit=100",

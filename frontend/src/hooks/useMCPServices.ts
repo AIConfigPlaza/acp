@@ -79,8 +79,8 @@ export function useMCPServices() {
       // 同时获取当前用户自己创建的MCP配置列表和所有公开的MCP配置列表
       const [mineResult, publicResult] = await Promise.all([
         apiRequest<McpConfigDto[]>(
-          "/api/mcp-configs/mine?page=1&limit=100",
-          { authToken, requireAuth: true }
+        "/api/mcp-configs/mine?page=1&limit=100",
+        { authToken, requireAuth: true }
         ),
         apiRequest<McpConfigDto[]>(
           "/api/mcp-configs/public?page=1&limit=100",

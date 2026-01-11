@@ -412,32 +412,32 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
                       <TabsTrigger value="my" className="text-xs rounded-none rounded-tl-lg w-full min-w-0 max-w-full overflow-hidden h-full flex items-center justify-start px-3 whitespace-normal">
                         <Lock size={12} className="mr-1 shrink-0" />
                         <span className="truncate min-w-0 flex-1">{t("dialog_my")} ({myMCPs.length})</span>
-                      </TabsTrigger>
+                    </TabsTrigger>
                       <TabsTrigger value="public" className="text-xs rounded-none rounded-tr-lg w-full min-w-0 max-w-full overflow-hidden h-full flex items-center justify-start px-3 whitespace-normal">
                         <Globe size={12} className="mr-1 shrink-0" />
                         <span className="truncate min-w-0 flex-1">{t("dialog_public_label")} ({publicMCPs.length})</span>
-                      </TabsTrigger>
-                    </TabsList>
+                    </TabsTrigger>
+                  </TabsList>
                   </div>
                   <div className="overflow-hidden max-h-40">
                     <TabsContent value="my" className="p-2 overflow-y-auto mt-0 max-h-40">
-                      {myMCPs.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          {t("dialog_no_private_mcp")}
-                        </p>
-                      ) : (
-                        <div className="space-y-1">{myMCPs.map(renderMCPItem)}</div>
-                      )}
-                    </TabsContent>
+                    {myMCPs.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {t("dialog_no_private_mcp")}
+                      </p>
+                    ) : (
+                      <div className="space-y-1">{myMCPs.map(renderMCPItem)}</div>
+                    )}
+                  </TabsContent>
                     <TabsContent value="public" className="p-2 overflow-y-auto mt-0 max-h-40">
-                      {publicMCPs.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          {t("dialog_no_public_mcp")}
-                        </p>
-                      ) : (
-                        <div className="space-y-1">{publicMCPs.map(renderMCPItem)}</div>
-                      )}
-                    </TabsContent>
+                    {publicMCPs.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {t("dialog_no_public_mcp")}
+                      </p>
+                    ) : (
+                      <div className="space-y-1">{publicMCPs.map(renderMCPItem)}</div>
+                    )}
+                  </TabsContent>
                   </div>
                 </Tabs>
               </div>
@@ -467,32 +467,32 @@ export function SolutionDialog({ open, onOpenChange, solution, onSave, initialAs
                       <TabsTrigger value="my" className="text-xs rounded-none rounded-tl-lg w-full min-w-0 max-w-full overflow-hidden h-full flex items-center justify-start px-3 whitespace-normal">
                         <Lock size={12} className="mr-1 shrink-0" />
                         <span className="truncate min-w-0 flex-1">{t("dialog_my")} ({myPrompts.length})</span>
-                      </TabsTrigger>
+                    </TabsTrigger>
                       <TabsTrigger value="public" className="text-xs rounded-none rounded-tr-lg w-full min-w-0 max-w-full overflow-hidden h-full flex items-center justify-start px-3 whitespace-normal">
                         <Globe size={12} className="mr-1 shrink-0" />
                         <span className="truncate min-w-0 flex-1">{t("dialog_public_label")} ({publicPrompts.length})</span>
-                      </TabsTrigger>
-                    </TabsList>
+                    </TabsTrigger>
+                  </TabsList>
                   </div>
                   <div className="overflow-hidden max-h-40">
                     <TabsContent value="my" className="p-2 overflow-y-auto mt-0 max-h-40">
-                      {myPrompts.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          {t("dialog_no_private_prompts")}
-                        </p>
-                      ) : (
-                        <div className="space-y-1">{myPrompts.map(renderPromptItem)}</div>
-                      )}
-                    </TabsContent>
+                    {myPrompts.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {t("dialog_no_private_prompts")}
+                      </p>
+                    ) : (
+                      <div className="space-y-1">{myPrompts.map(renderPromptItem)}</div>
+                    )}
+                  </TabsContent>
                     <TabsContent value="public" className="p-2 overflow-y-auto mt-0 max-h-40">
-                      {publicPrompts.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          {t("dialog_no_public_prompts")}
-                        </p>
-                      ) : (
-                        <div className="space-y-1">{publicPrompts.map(renderPromptItem)}</div>
-                      )}
-                    </TabsContent>
+                    {publicPrompts.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {t("dialog_no_public_prompts")}
+                      </p>
+                    ) : (
+                      <div className="space-y-1">{publicPrompts.map(renderPromptItem)}</div>
+                    )}
+                  </TabsContent>
                   </div>
                 </Tabs>
               </div>

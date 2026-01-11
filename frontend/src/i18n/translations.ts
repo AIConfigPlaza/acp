@@ -40,7 +40,7 @@ export const translations = {
     // Dashboard
     dashboard_welcome: "Welcome back,",
     dashboard_developer: "Developer",
-    dashboard_description: "Manage your AI configurations, create powerful solutions, and sync them to your local projects with ease.",
+    dashboard_description: "Manage your AI configurations, create powerful solutions with Agents, Prompts, MCP services, and Skills, and sync them to your local projects with ease.",
     dashboard_create_plan: "Create New Solution",
     dashboard_view_cli: "View CLI Guide",
     dashboard_recent_plans: "Recent Solutions",
@@ -99,7 +99,7 @@ export const translations = {
     cli_title: "CLI Guide",
     cli_description: "Learn how to use ACP CLI to sync configurations to your local projects",
     cli_hero_title: "ACP CLI",
-    cli_hero_desc: "The ACP CLI allows you to sync your AI configurations directly to your local development environment. Pull solutions, agents, prompts, and MCP configurations with a single command.",
+    cli_hero_desc: "The ACP CLI allows you to sync your AI configurations directly to your local development environment. Pull solutions, agents, prompts, MCP configurations, and skills with a single command.",
     cli_view_github: "View on GitHub",
     cli_commands: "Commands",
     cli_structure: "Generated Structure",
@@ -133,8 +133,8 @@ export const translations = {
     home_demo_user: "Demo User",
     home_support_badge: "Now supporting Claude Code & Cursor",
     home_hero_title: "The AI Config Plaza",
-    home_hero_desc: "Stop configuring AI tools from scratch. Discover, share, and one-click install verified configurations for MCP servers, Agents, and Prompts.",
-    home_search_placeholder: "Search solutions, agents, or MCPs...",
+    home_hero_desc: "Stop configuring AI tools from scratch. Discover, share, and one-click install verified configurations for MCP servers, Agents, Prompts, and Skills.",
+    home_search_placeholder: "Search solutions, agents, MCPs, prompts, or skills...",
     home_sort_downloads: "Sort: Downloads",
     home_sort_likes: "Sort: Likes",
     home_sort_rating: "Sort: Rating",
@@ -149,6 +149,7 @@ export const translations = {
     home_login_to_like: "Please login to like this item",
     home_like_failed: "Failed to like",
     home_like_retry: "Unable to like, please try again later",
+    home_like_tip: "Tip: Like public configurations to add them to your personal collection. Liked items will appear in your Dashboard.",
     
     // Dialogs
     dialog_edit_agent: "Edit Agent",
@@ -207,7 +208,7 @@ export const translations = {
     page_no_description: "No description",
     page_edit: "Edit",
     page_solutions: "Solutions",
-    page_solutions_desc: "Combine MCP, Agent and Prompts to create complete AI configuration solutions",
+    page_solutions_desc: "Combine MCP, Agent, Prompts and Skills to create complete AI configuration solutions",
     page_new_solution: "New Solution",
     page_agent_label: "Agent",
     
@@ -237,9 +238,9 @@ export const translations = {
     // Navigation
     nav_dashboard: "仪表盘",
     nav_mcp: "MCP 服务",
-    nav_personas: "Agents",
+    nav_personas: "Agent配置",
     nav_prompts: "提示词模板",
-    nav_plans: "Solutions",
+    nav_plans: "解决方案",
     nav_skills: "技能",
     nav_cli: "CLI 指南",
     nav_settings: "设置",
@@ -255,7 +256,7 @@ export const translations = {
     // Dashboard
     dashboard_welcome: "欢迎回来，",
     dashboard_developer: "开发者",
-    dashboard_description: "管理您的 AI 配置，创建强大的解决方案，并轻松同步到本地项目。",
+    dashboard_description: "管理您的 AI 配置，创建包含 Agents、Prompts、MCP 服务和 Skills 的强大解决方案，并轻松同步到本地项目。",
     dashboard_create_plan: "创建新方案",
     dashboard_view_cli: "查看 CLI 指南",
     dashboard_recent_plans: "最近的方案",
@@ -264,7 +265,7 @@ export const translations = {
     
     // Stats
     stats_mcp: "MCP 服务",
-    stats_personas: "Agents",
+    stats_personas: "Agent配置",
     stats_prompts: "提示词模板",
     stats_skills: "技能",
     stats_plans: "活跃方案",
@@ -279,7 +280,7 @@ export const translations = {
     mcp_status: "状态",
     
     // Personas
-    personas_title: "Agents",
+    personas_title: "Agent配置",
     personas_description: "定义 AI Agent 的角色和行为",
     personas_new: "新建 Agent",
     personas_plans_count: "个方案",
@@ -300,7 +301,7 @@ export const translations = {
     skills_add: "添加技能",
     
     // Plans/Solutions
-    plans_title: "Solutions",
+    plans_title: "解决方案",
     plans_description: "创建和管理 AI 工作流方案",
     plans_new: "新建方案",
     plans_persona: "Agent",
@@ -314,7 +315,7 @@ export const translations = {
     cli_title: "CLI 指南",
     cli_description: "了解如何使用 ACP CLI 将配置同步到本地项目",
     cli_hero_title: "ACP CLI",
-    cli_hero_desc: "ACP CLI 允许您将 AI 配置直接同步到本地开发环境。只需一个命令即可拉取方案、Agent、提示词和 MCP 配置。",
+    cli_hero_desc: "ACP CLI 允许您将 AI 配置直接同步到本地开发环境。只需一个命令即可拉取方案、Agent、提示词、MCP 配置和 Skills。",
     cli_view_github: "在 GitHub 查看",
     cli_commands: "命令",
     cli_structure: "生成的目录结构",
@@ -348,8 +349,8 @@ export const translations = {
     home_demo_user: "演示用户",
     home_support_badge: "现已支持 Claude Code & Cursor",
     home_hero_title: "The AI Config Plaza",
-    home_hero_desc: "不再从零开始配置 AI 工具。发现、分享和一键安装 MCP 服务器、Agents 和 Prompts 的验证配置。",
-    home_search_placeholder: "搜索 solutions, agents, 或 MCPs...",
+    home_hero_desc: "不再从零开始配置 AI 工具。发现、分享和一键安装 MCP 服务器、Agents、Prompts 和 Skills 的验证配置。",
+    home_search_placeholder: "搜索 solutions, agents, MCPs, prompts 或 skills...",
     home_sort_downloads: "按下载排序",
     home_sort_likes: "按点赞排序",
     home_sort_rating: "按评分排序",
@@ -364,6 +365,7 @@ export const translations = {
     home_login_to_like: "请先登录后再点赞",
     home_like_failed: "点赞失败",
     home_like_retry: "无法点赞，请稍后重试",
+    home_like_tip: "提示：点赞公开配置后，它们会出现在您的个人配置中。已点赞的配置可在仪表盘中查看。",
     
     // Dialogs
     dialog_edit_agent: "编辑 Agent",
@@ -421,8 +423,8 @@ export const translations = {
     page_private: "私有",
     page_no_description: "暂无描述",
     page_edit: "编辑",
-    page_solutions: "方案",
-    page_solutions_desc: "组合 MCP、Agent 和提示词创建完整的 AI 配置方案",
+    page_solutions: "解决方案",
+    page_solutions_desc: "组合 MCP、Agent、提示词和 Skills 创建完整的 AI 配置解决方案",
     page_new_solution: "新建方案",
     page_agent_label: "Agent",
     

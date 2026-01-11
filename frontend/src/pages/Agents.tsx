@@ -134,23 +134,23 @@ export default function Agents() {
                   </div>
                 </div>
                 {agent.isLikedByCurrentUser !== true || agent.user_id === user?.id ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8">
-                        <MoreVertical size={16} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(agent)}>
-                        <Edit size={14} className="mr-2" />
-                        {t("edit")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(agent)} className="text-destructive">
-                        <Trash2 size={14} className="mr-2" />
-                        {t("delete")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8">
+                      <MoreVertical size={16} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEdit(agent)}>
+                      <Edit size={14} className="mr-2" />
+                      {t("edit")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDelete(agent)} className="text-destructive">
+                      <Trash2 size={14} className="mr-2" />
+                      {t("delete")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 ) : null}
               </div>
 
