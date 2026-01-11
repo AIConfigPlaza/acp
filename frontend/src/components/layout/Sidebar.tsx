@@ -6,6 +6,7 @@ import {
   Bot,
   FileText,
   GitBranch,
+  Sparkles,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -31,6 +32,7 @@ export function Sidebar() {
     { icon: Bot, label: t("nav_personas"), path: "/agent" },
     { icon: FileText, label: t("nav_prompts"), path: "/prompts" },
     { icon: GitBranch, label: t("nav_plans"), path: "/solutions" },
+    { icon: Sparkles, label: t("nav_skills"), path: "/skills" },
     { icon: Settings, label: t("nav_settings"), path: "/settings" },
   ];
 

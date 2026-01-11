@@ -10,6 +10,7 @@ import { useMCPServices } from "@/hooks/useMCPServices";
 import { useAgents } from "@/hooks/useAgents";
 import { usePrompts } from "@/hooks/usePrompts";
 import { useSolutions } from "@/hooks/useSolutions";
+import { useSkills } from "@/hooks/useSkills";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -18,13 +19,17 @@ export default function Dashboard() {
   const { agents: allAgents } = useAgents();
   const { prompts: allPrompts } = usePrompts();
   const { solutions } = useSolutions();
+  const { skills: allSkills } = useSkills();
 
   const userName = user?.user_metadata?.user_name || user?.email?.split("@")[0] || t("dashboard_developer");
 
-  // 只统计用户自己创建的配置
-  const services = allServices.filter(s => user && s.user_id === user.id);
-  const agents = allAgents.filter(a => user && a.user_id === user.id);
-  const prompts = allPrompts.filter(p => user && p.user_id === user.id);
+  // 统计 /mine 接口返回的所有数据（包括自己创建的和已点赞的）
+  const services = allServices.filter(s => user && (s.user_id === user.id || s.isLikedByCurrentUser === true));
+  const agents = allAgents.filter(a => user && (a.user_id === user.id || a.isLikedByCurrentUser === true));
+  const prompts = allPrompts.filter(p => user && (p.user_id === user.id || p.isLikedByCurrentUser === true));
+  const skills = allSkills.filter(s => user && (s.user_id === user.id || s.isLikedByCurrentUser === true));
+  // solutions 已经只来自 /mine 接口，所以直接使用
+  const mySolutions = solutions;
 
   const recentSolutions = solutions.slice(0, 3);
 
@@ -59,7 +64,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
         <StatsCard
           label={t("stats_mcp")}
           value={services.length}
@@ -76,8 +81,13 @@ export default function Dashboard() {
           icon={FileText}
         />
         <StatsCard
+          label={t("stats_skills")}
+          value={skills.length}
+          icon={Sparkles}
+        />
+        <StatsCard
           label={t("stats_plans")}
-          value={solutions.length}
+          value={mySolutions.length}
           icon={GitBranch}
         />
       </div>

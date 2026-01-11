@@ -20,12 +20,14 @@ export interface Solution {
   downloads: number;
   likes: number;
   rating: number | null;
+  isLikedByCurrentUser?: boolean;
   tags: string[];
   ai_tool: string;
   compatibility: Record<string, unknown>;
   agent?: { name: string } | null;
   mcp_services?: { id: string; name: string }[];
   prompts?: { id: string; name: string; step_order: number }[];
+  skills?: { id: string; name: string }[];
 }
 
 export interface SolutionMCPService {
@@ -53,6 +55,7 @@ interface SolutionDto extends BaseDto {
 interface SolutionDetailDto extends SolutionDto {
   mcpConfigs: Array<{ id: string; name: string }>;
   customPrompts: Array<{ id: string; name: string }>;
+  skills: Array<{ id: string; name: string }>;
 }
 
 const DEMO_KEY = "solutions";
@@ -88,8 +91,8 @@ function aiToolToBackend(aiTool: string): string {
 }
 
 // 将后端DTO转换为前端Solution格式
-function dtoToSolution(dto: SolutionDto): Solution {
-  return {
+function dtoToSolution(dto: SolutionDto | SolutionDetailDto): Solution {
+  const base = {
     id: dto.id,
     user_id: dto.author.id,
     name: dto.name,
@@ -104,11 +107,24 @@ function dtoToSolution(dto: SolutionDto): Solution {
     downloads: dto.downloads,
     likes: dto.likes,
     rating: dto.rating || null,
+    isLikedByCurrentUser: dto.isLikedByCurrentUser,
     tags: dto.tags || [],
     ai_tool: aiToolToFrontend(dto.aiTool),
     compatibility: dto.compatibility || {},
     agent: dto.agentConfig ? { name: dto.agentConfig.name } : null,
   };
+
+  // 如果是详情DTO，包含关联数据
+  if ('mcpConfigs' in dto) {
+    return {
+      ...base,
+      mcp_services: dto.mcpConfigs?.map(m => ({ id: m.id, name: m.name })) || [],
+      prompts: dto.customPrompts?.map((p, index) => ({ id: p.id, name: p.name, step_order: index })) || [],
+      skills: dto.skills?.map(s => ({ id: s.id, name: s.name })) || [],
+    };
+  }
+
+  return base;
 }
 
 export function useSolutions() {
@@ -150,6 +166,7 @@ export function useSolutions() {
       ai_tool?: string;
       mcp_service_ids?: string[];
       prompt_ids?: { id: string; step_order: number }[];
+      skill_ids?: string[];
     }) => {
       if (demoMode) {
         const now = new Date().toISOString();
@@ -220,6 +237,7 @@ export function useSolutions() {
             agentConfigId: solution.agent_id,
             mcpConfigIds: solution.mcp_service_ids || [],
             customPromptIds: solution.prompt_ids?.map(p => p.id) || [],
+            skillIds: solution.skill_ids || [],
             tags: solution.tags || [],
             isPublic: solution.is_public !== undefined ? solution.is_public : true,
           },
@@ -319,6 +337,7 @@ export function useSolutions() {
       if (tags !== undefined) updateData.tags = tags;
       if (mcp_service_ids !== undefined) updateData.mcpConfigIds = mcp_service_ids;
       if (prompt_ids !== undefined) updateData.customPromptIds = prompt_ids.map(p => p.id);
+      if (skill_ids !== undefined) updateData.skillIds = skill_ids;
 
       const result = await apiRequest<SolutionDetailDto>(
         `/api/solutions/${id}`,
@@ -386,6 +405,7 @@ export function useSolutions() {
         prompt_ids: promptData
           .filter(a => a.solution_id === solutionId)
           .map(a => ({ id: a.prompt_id, step_order: a.step_order })),
+        skill_ids: [],
       };
     }
 
@@ -401,11 +421,12 @@ export function useSolutions() {
     const detail = result.data;
     return {
       mcp_service_ids: detail.mcpConfigs?.map(m => m.id) || [],
-      prompt_ids: detail.customPrompts?.map((p, index) => ({ id: p.id, step_order: index + 1 })) || [],
+      prompt_ids: detail.customPrompts?.map((p, index) => ({ id: p.id, step_order: index })) || [],
+      skill_ids: detail.skills?.map(s => s.id) || [],
     };
     } catch (error) {
       if (error instanceof Error && (error as Error & { status?: number }).status === 404) {
-        return { mcp_service_ids: [], prompt_ids: [] };
+        return { mcp_service_ids: [], prompt_ids: [], skill_ids: [] };
       }
       throw error;
     }

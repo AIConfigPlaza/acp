@@ -13,6 +13,7 @@ import MCPServices from "./pages/MCPServices";
 import Agents from "./pages/Agents";
 import Prompts from "./pages/Prompts";
 import Solutions from "./pages/Solutions";
+import Skills from "./pages/Skills";
 import Settings from "./pages/Settings";
 import PublicCLI from "./pages/PublicCLI";
 import PublicDocs from "./pages/PublicDocs";
@@ -96,6 +97,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <Solutions />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/skills"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Skills />
             </AppLayout>
           </ProtectedRoute>
         }

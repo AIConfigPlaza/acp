@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Star, Sparkles, Grid3X3, Zap, Bot, FileText, Globe, ChevronDown, LayoutDashboard, LogOut, LogIn, Heart, Download } from "lucide-react";
+import { Search, Star, Sparkles, Grid3X3, Zap, Bot, FileText, Globe, ChevronDown, LayoutDashboard, LogOut, LogIn, Heart, Download, Code, File, Folder, User, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type ExploreItem } from "@/lib/types";
 
-type TabType = "all" | "solutions" | "mcp" | "agents" | "prompts";
+type TabType = "all" | "solutions" | "mcp" | "agents" | "prompts" | "skills";
 
 // Get liked items from localStorage
 const getLikedItems = (): Set<string> => {
@@ -53,8 +53,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("popularity");
   const [likedItems, setLikedItemsState] = useState<Set<string>>(getLikedItems);
-  const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
-  const [showPromptDetail, setShowPromptDetail] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   
   const { items: exploreItems, isLoading: isLoadingExplore, refetch: refetchExplore } = useExplore();
 
@@ -101,6 +101,8 @@ export default function Home() {
         apiPath = `/api/agent-configs/${item.id}/like`;
       } else if (item.type === "prompts") {
         apiPath = `/api/custom-prompts/${item.id}/like`;
+      } else if (item.type === "skills") {
+        apiPath = `/api/skills/${item.id}/like`;
       }
 
       try {
@@ -194,6 +196,7 @@ export default function Home() {
     { key: "mcp", label: "MCP", icon: <Sparkles className="w-4 h-4" /> },
     { key: "agents", label: "Agents", icon: <Bot className="w-4 h-4" /> },
     { key: "prompts", label: "Prompts", icon: <FileText className="w-4 h-4" /> },
+    { key: "skills", label: "Skills", icon: <Star className="w-4 h-4" /> },
   ];
 
   const typeColors: Record<string, string> = {
@@ -201,6 +204,7 @@ export default function Home() {
     mcp: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     agents: "bg-purple-500/20 text-purple-400 border-purple-500/30",
     prompts: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    skills: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
   };
 
   const typeLabels: Record<string, string> = {
@@ -208,6 +212,7 @@ export default function Home() {
     mcp: "MCP",
     agents: "Agents",
     prompts: "Prompts",
+    skills: "Skills",
   };
 
   const formatNumber = (num: number) => {
@@ -398,18 +403,9 @@ export default function Home() {
                   key={itemKey}
                   className="group p-5 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:bg-card/80 transition-all cursor-pointer flex flex-col"
                   onClick={() => {
-                    // 根据类型导航到对应的详情页面或显示详情对话框
-                    if (item.type === "solutions") {
-                      navigate(`/solutions`);
-                    } else if (item.type === "mcp") {
-                      navigate(`/mcp`);
-                    } else if (item.type === "agents") {
-                      navigate(`/agent`);
-                    } else if (item.type === "prompts") {
-                      // 对于提示词，显示详情对话框
-                      setSelectedPromptId(item.id);
-                      setShowPromptDetail(true);
-                    }
+                    // 显示详情对话框
+                    setSelectedItem({ type: item.type, id: item.id });
+                    setShowDetailDialog(true);
                   }}
                 >
                   <div className="flex items-start gap-3 mb-3">
@@ -418,6 +414,7 @@ export default function Home() {
                       {item.type === "mcp" && <Sparkles className="w-5 h-5 text-blue-400" />}
                       {item.type === "agents" && <Bot className="w-5 h-5 text-purple-400" />}
                       {item.type === "prompts" && <FileText className="w-5 h-5 text-amber-400" />}
+                      {item.type === "skills" && <Star className="w-5 h-5 text-cyan-400" />}
                     </div>
                     <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -511,10 +508,10 @@ export default function Home() {
       </footer>
 
       {/* Prompt Detail Dialog */}
-      <PromptDetailDialog
-        promptId={selectedPromptId}
-        open={showPromptDetail}
-        onOpenChange={setShowPromptDetail}
+      <ResourceDetailDialog
+        selectedItem={selectedItem}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
         language={language}
         onLike={handleLike}
         likedItems={likedItems}
@@ -524,9 +521,9 @@ export default function Home() {
   );
 }
 
-// Prompt详情对话框组件
-function PromptDetailDialog({
-  promptId,
+// 通用资源详情对话框组件
+function ResourceDetailDialog({
+  selectedItem,
   open,
   onOpenChange,
   language,
@@ -534,7 +531,7 @@ function PromptDetailDialog({
   likedItems,
   allItems,
 }: {
-  promptId: string | null;
+  selectedItem: { type: string; id: string } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   language: string;
@@ -543,104 +540,457 @@ function PromptDetailDialog({
   allItems: ExploreItem[];
 }) {
   const { getAuthToken } = useAuth();
-  const [prompt, setPrompt] = useState<{ name: string; description: string | null; content_md: string; tags: string[] | null; downloads: number; likes: number; rating: number | null } | null>(null);
+  const { t } = useLanguage();
+  const [detail, setDetail] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const item = allItems.find(i => i.type === "prompts" && i.id === promptId);
+  const item = selectedItem ? allItems.find(i => i.type === selectedItem.type && i.id === selectedItem.id) : null;
 
   useEffect(() => {
-    if (open && promptId) {
+    if (open && selectedItem) {
       setIsLoading(true);
       const authToken = getAuthToken();
-      apiRequest<{ id: string; name: string; description: string; content: string; tags: string[]; downloads: number; likes: number; rating: number }>(
-        `/api/custom-prompts/${promptId}`,
-        { authToken, requireAuth: false }
-      )
+      let apiUrl = "";
+
+      switch (selectedItem.type) {
+        case "solutions":
+          apiUrl = `/api/solutions/${selectedItem.id}`;
+          break;
+        case "agents":
+          apiUrl = `/api/agent-configs/${selectedItem.id}`;
+          break;
+        case "mcp":
+          apiUrl = `/api/mcp-configs/${selectedItem.id}`;
+          break;
+        case "prompts":
+          apiUrl = `/api/custom-prompts/${selectedItem.id}`;
+          break;
+        case "skills":
+          apiUrl = `/api/skills/${selectedItem.id}`;
+          break;
+        default:
+          setIsLoading(false);
+          return;
+      }
+
+      apiRequest(apiUrl, { authToken, requireAuth: false })
         .then((result) => {
-          setPrompt({
-            name: result.data.name,
-            description: result.data.description || null,
-            content_md: result.data.content,
-            tags: result.data.tags || null,
-            downloads: result.data.downloads,
-            likes: result.data.likes,
-            rating: result.data.rating || null,
-          });
+          setDetail(result.data);
         })
         .catch(() => {
-          setPrompt(null);
+          setDetail(null);
         })
         .finally(() => {
           setIsLoading(false);
         });
     } else {
-      setPrompt(null);
+      setDetail(null);
     }
-  }, [open, promptId, getAuthToken]);
+  }, [open, selectedItem, getAuthToken]);
 
-  if (!promptId) return null;
+  if (!selectedItem) return null;
 
-  const itemKey = `prompts-${promptId}`;
-  const isLiked = likedItems.has(itemKey);
+  const itemKey = `${selectedItem.type}-${selectedItem.id}`;
+  // 优先使用 API 返回的点赞状态（这是服务器端的最新状态），如果还没有加载完成，使用本地状态作为后备
+  const isLiked = detail?.isLikedByCurrentUser !== undefined 
+    ? detail.isLikedByCurrentUser 
+    : likedItems.has(itemKey);
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+        </div>
+      );
+    }
+
+    if (!detail) {
+      return (
+        <p className="text-center text-muted-foreground py-8">
+          {language === "zh" ? "加载详情失败" : "Failed to load details"}
+        </p>
+      );
+    }
+
+    switch (selectedItem.type) {
+      case "prompts":
+        return (
+          <div className="space-y-6">
+            {detail.description && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  {language === "zh" ? "描述" : "Description"}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{detail.description}</p>
+              </div>
+            )}
+            {detail.tags && detail.tags.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3">{language === "zh" ? "标签" : "Tags"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Code className="w-4 h-4" />
+                {language === "zh" ? "内容" : "Content"}
+              </h3>
+              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
+                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                  {detail.content || detail.contentMd || ""}
+                </pre>
+              </div>
+            </div>
+          </div>
+        );
+      case "agents":
+        return (
+          <div className="space-y-6">
+            {detail.description && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  {language === "zh" ? "描述" : "Description"}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{detail.description}</p>
+              </div>
+            )}
+            {detail.tags && detail.tags.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3">{language === "zh" ? "标签" : "Tags"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Code className="w-4 h-4" />
+                {language === "zh" ? "配置内容" : "Configuration"}
+              </h3>
+              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
+                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                  {detail.content || detail.contentMd || ""}
+                </pre>
+              </div>
+            </div>
+          </div>
+        );
+      case "mcp":
+        return (
+          <div className="space-y-6">
+            {detail.description && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  {language === "zh" ? "描述" : "Description"}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{detail.description}</p>
+              </div>
+            )}
+            {detail.tags && detail.tags.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3">{language === "zh" ? "标签" : "Tags"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Code className="w-4 h-4" />
+                {language === "zh" ? "配置JSON" : "Configuration JSON"}
+              </h3>
+              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
+                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                  {typeof detail.configJson === 'string' ? detail.configJson : JSON.stringify(detail.configJson, null, 2)}
+                </pre>
+              </div>
+            </div>
+          </div>
+        );
+      case "skills":
+        return (
+          <div className="space-y-6">
+            {detail.tags && detail.tags.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3">{language === "zh" ? "标签" : "Tags"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Code className="w-4 h-4" />
+                {language === "zh" ? "Skill内容" : "Skill Content"}
+              </h3>
+              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
+                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                  {detail.skillMarkdown || ""}
+                </pre>
+              </div>
+            </div>
+            {detail.skillResources && detail.skillResources.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Folder className="w-4 h-4" />
+                  {language === "zh" ? "资源文件" : "Resource Files"}
+                </h3>
+                <div className="space-y-2">
+                  {detail.skillResources.map((resource: any, idx: number) => (
+                    <div key={idx} className="border border-border rounded-lg p-3 bg-background hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <File className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">
+                            {resource.fileName}
+                          </div>
+                          {resource.relativePath && (
+                            <div className="text-xs text-muted-foreground truncate">
+                              {resource.relativePath}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      case "solutions":
+        return (
+          <div className="space-y-6">
+            {detail.description && (
+              <div>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  {language === "zh" ? "描述" : "Description"}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{detail.description}</p>
+              </div>
+            )}
+            {detail.tags && detail.tags.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3">{language === "zh" ? "标签" : "Tags"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            {detail.agentConfig && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Bot className="w-4 h-4" />
+                  {language === "zh" ? "Agent配置" : "Agent Config"}
+                </h3>
+                <div className="border border-border rounded-lg p-3 bg-muted/30">
+                  <div className="text-sm font-medium">{detail.agentConfig.name}</div>
+                  {detail.agentConfig.description && (
+                    <div className="text-xs text-muted-foreground mt-1">{detail.agentConfig.description}</div>
+                  )}
+                </div>
+              </div>
+            )}
+            {detail.mcpConfigs && detail.mcpConfigs.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  {language === "zh" ? "MCP配置" : "MCP Configs"}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.mcpConfigs.map((mcp: any) => (
+                    <Badge key={mcp.id} variant="outline" className="px-3 py-1.5">
+                      {mcp.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            {detail.customPrompts && detail.customPrompts.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  {language === "zh" ? "提示词" : "Prompts"}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.customPrompts.map((prompt: any) => (
+                    <Badge key={prompt.id} variant="outline" className="px-3 py-1.5">
+                      {prompt.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            {detail.skills && detail.skills.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Star className="w-4 h-4" />
+                  {language === "zh" ? "Skills" : "Skills"}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {detail.skills.map((skill: any) => (
+                    <Badge key={skill.id} variant="outline" className="px-3 py-1.5">
+                      {skill.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getTypeIcon = () => {
+    switch (selectedItem.type) {
+      case "solutions": return <Zap className="w-5 h-5 text-emerald-400" />;
+      case "mcp": return <Sparkles className="w-5 h-5 text-blue-400" />;
+      case "agents": return <Bot className="w-5 h-5 text-purple-400" />;
+      case "prompts": return <FileText className="w-5 h-5 text-amber-400" />;
+      case "skills": return <Star className="w-5 h-5 text-cyan-400" />;
+      default: return null;
+    }
+  };
+
+  const getTypeLabel = () => {
+    const labels: Record<string, string> = {
+      solutions: language === "zh" ? "解决方案" : "Solution",
+      mcp: "MCP",
+      agents: language === "zh" ? "Agent配置" : "Agent Config",
+      prompts: language === "zh" ? "提示词" : "Prompt",
+      skills: "Skill",
+    };
+    return labels[selectedItem.type] || selectedItem.type;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{prompt?.name || item?.name || ""}</DialogTitle>
-        </DialogHeader>
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
-          </div>
-        ) : prompt ? (
-          <div className="space-y-4">
-            {prompt.description && (
-              <p className="text-sm text-muted-foreground">{prompt.description}</p>
-            )}
-            {prompt.tags && prompt.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {prompt.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
-                    #{tag}
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                {getTypeIcon()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-xl mb-1">{detail?.name || item?.name || ""}</DialogTitle>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <Badge variant="outline" className="text-xs">
+                    {getTypeLabel()}
                   </Badge>
-                ))}
-              </div>
-            )}
-            <div className="border rounded-lg p-4 bg-muted/50">
-              <pre className="whitespace-pre-wrap text-sm font-mono">
-                {prompt.content_md}
-              </pre>
-            </div>
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>{t("home_downloads")}: {prompt.downloads}</span>
-                <button
-                  onClick={(e) => {
-                    if (item) {
-                      onLike(item, e);
-                    }
-                  }}
-                  className={cn(
-                    "flex items-center gap-1 transition-colors",
-                    isLiked ? "text-rose-500" : "hover:text-rose-500"
+                  {detail?.author && (
+                    <div className="flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5" />
+                      <span>{detail.author.username}</span>
+                    </div>
                   )}
-                >
-                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-                  {prompt.likes}
-                </button>
-                {prompt.rating && (
-                  <span className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                    {prompt.rating.toFixed(1)}
-                  </span>
-                )}
+                  {detail?.createdAt && (
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{new Date(detail.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
+          </DialogHeader>
+
+          <div className="px-6 py-6 space-y-6">
+            {renderContent()}
+          </div>
+        </div>
+
+        {detail && (
+          <div className="px-6 py-4 border-t border-border/50 bg-muted/30 flex items-center justify-between">
+            <div className="flex items-center gap-6 text-sm">
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (item && detail) {
+                    // 乐观更新：先更新 UI 状态
+                    const newIsLiked = !isLiked;
+                    setDetail({
+                      ...detail,
+                      isLikedByCurrentUser: newIsLiked,
+                      likes: newIsLiked ? (detail.likes || 0) + 1 : Math.max(0, (detail.likes || 0) - 1),
+                    });
+                    
+                    // 调用点赞 API（这会更新 localStorage 和后端）
+                    onLike(item, e);
+                    
+                    // 重新获取详情以同步后端状态（延迟一点以确保 API 调用完成）
+                    setTimeout(async () => {
+                      const authToken = getAuthToken();
+                      let apiUrl = "";
+                      switch (selectedItem.type) {
+                        case "solutions": apiUrl = `/api/solutions/${selectedItem.id}`; break;
+                        case "agents": apiUrl = `/api/agent-configs/${selectedItem.id}`; break;
+                        case "mcp": apiUrl = `/api/mcp-configs/${selectedItem.id}`; break;
+                        case "prompts": apiUrl = `/api/custom-prompts/${selectedItem.id}`; break;
+                        case "skills": apiUrl = `/api/skills/${selectedItem.id}`; break;
+                      }
+                      if (apiUrl) {
+                        try {
+                          const result = await apiRequest(apiUrl, { authToken, requireAuth: false });
+                          setDetail(result.data);
+                        } catch (error) {
+                          // 如果失败，回滚到之前的状态
+                          console.error("Failed to refresh detail:", error);
+                        }
+                      }
+                    }, 500);
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors",
+                  isLiked 
+                    ? "text-rose-500 bg-rose-500/10 hover:bg-rose-500/20" 
+                    : "text-muted-foreground hover:text-rose-500 hover:bg-muted"
+                )}
+              >
+                <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+                <span className="font-medium">{detail.likes || 0}</span>
+              </button>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Download className="w-4 h-4" />
+                <span>{detail.downloads || 0}</span>
+              </div>
+              {detail.rating && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                  <span className="font-medium">{detail.rating.toFixed(1)}</span>
+                </div>
+              )}
             </div>
           </div>
-        ) : (
-          <p className="text-center text-muted-foreground py-8">
-            {t("home_prompt_detail_failed")}
-          </p>
         )}
       </DialogContent>
     </Dialog>

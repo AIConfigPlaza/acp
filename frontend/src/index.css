@@ -149,4 +149,94 @@
   .bg-surface-1 { background-color: hsl(var(--surface-1)); }
   .bg-surface-2 { background-color: hsl(var(--surface-2)); }
   .bg-surface-3 { background-color: hsl(var(--surface-3)); }
+
+  /* 自定义滚动条样式 */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(220 14% 20% / 0.5) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(220 14% 20% / 0.5);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 0.2s ease;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(220 14% 25% / 0.7);
+    background-clip: padding-box;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: hsl(217 91% 60% / 0.6);
+    background-clip: padding-box;
+  }
+
+  /* 更细的滚动条变体 */
+  .custom-scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(220 14% 20% / 0.4) transparent;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(220 14% 20% / 0.4);
+    border-radius: 3px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 0.2s ease;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(220 14% 25% / 0.6);
+    background-clip: padding-box;
+  }
+
+  /* Radix UI ScrollArea 自定义样式 */
+  .custom-scrollbar [data-radix-scroll-area-scrollbar] {
+    background: transparent !important;
+    width: 8px !important;
+  }
+
+  .custom-scrollbar [data-radix-scroll-area-scrollbar][data-orientation="vertical"] {
+    width: 8px !important;
+    border-left: none !important;
+    padding: 2px !important;
+  }
+
+  .custom-scrollbar [data-radix-scroll-area-thumb] {
+    background: hsl(220 14% 20% / 0.5) !important;
+    border-radius: 4px !important;
+    transition: background-color 0.2s ease !important;
+    min-height: 20px !important;
+  }
+
+  .custom-scrollbar:hover [data-radix-scroll-area-thumb] {
+    background: hsl(220 14% 25% / 0.7) !important;
+  }
+
+  .custom-scrollbar [data-radix-scroll-area-thumb]:active {
+    background: hsl(217 91% 60% / 0.6) !important;
+  }
 }

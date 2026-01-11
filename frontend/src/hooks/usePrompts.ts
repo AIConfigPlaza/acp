@@ -17,6 +17,7 @@ export interface Prompt {
   downloads: number;
   likes: number;
   rating: number | null;
+  isLikedByCurrentUser?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +42,7 @@ function dtoToPrompt(dto: PromptDto): Prompt {
     downloads: dto.downloads,
     likes: dto.likes,
     rating: dto.rating || null,
+    isLikedByCurrentUser: dto.isLikedByCurrentUser,
     created_at: dto.createdAt,
     updated_at: dto.updatedAt,
   };
@@ -76,10 +78,17 @@ export function usePrompts() {
         ),
       ]);
 
-      // 合并两个列表（public接口不包含用户自己创建的，所以不会有重复）
+      const minePrompts = mineResult.data.map(dtoToPrompt);
+      const publicPrompts = publicResult.data.map(dtoToPrompt);
+      
+      // 去重：如果 public 中的配置已经在 mine 中（通过 id 判断），则排除
+      const mineIds = new Set(minePrompts.map(p => p.id));
+      const uniquePublicPrompts = publicPrompts.filter(p => !mineIds.has(p.id));
+
+      // 合并两个列表用于向后兼容
       const allPrompts = [
-        ...mineResult.data.map(dtoToPrompt),
-        ...publicResult.data.map(dtoToPrompt),
+        ...minePrompts,
+        ...uniquePublicPrompts,
       ];
 
       return allPrompts;
