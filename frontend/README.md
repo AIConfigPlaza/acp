@@ -239,14 +239,9 @@ npm run lint
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
-## 📄 许可证
-
-本项目采用 MIT 许可证。
-
 ## 🔗 相关链接
 
 - [后端 API 文档](./../acp-backend/)
-- [设计文档](./../acp-backend/ACP（AI配置广场）设计文档%20.md)
 
 ## 💬 反馈与支持
 
