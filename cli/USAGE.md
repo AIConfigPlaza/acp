@@ -210,8 +210,6 @@ my-project/
 │   │   └── yyy.prompt.md
 │   └── skills/
 └── AGENTS.md
-
-注意：CodeBuddy 不支持 MCP 配置写入
 ```
 
 ### Qoder
