@@ -74,7 +74,10 @@ export async function applyAgentConfig(
   relativePath: string,
   targetDir: string
 ): Promise<void> {
-  const filePath = path.join(targetDir, relativePath)
+  // 如果 relativePath 是绝对路径，直接使用；否则拼接 targetDir
+  const filePath = path.isAbsolute(relativePath) 
+    ? relativePath 
+    : path.join(targetDir, relativePath)
 
   logger.step(`写入 Agent 配置: ${chalk.gray(relativePath)}`)
 
@@ -111,7 +114,10 @@ export async function applyPrompts(
   promptsDir: string,
   targetDir: string
 ): Promise<void> {
-  const fullPromptsDir = path.join(targetDir, promptsDir)
+  // 如果 promptsDir 是绝对路径，直接使用；否则拼接 targetDir
+  const fullPromptsDir = path.isAbsolute(promptsDir) 
+    ? promptsDir 
+    : path.join(targetDir, promptsDir)
 
   logger.step(`写入 ${prompts.length} 个 Prompt 配置到: ${chalk.gray(promptsDir)}`)
 
@@ -161,7 +167,10 @@ export async function applyMcpConfigs(
     return
   }
 
-  const filePath = path.join(targetDir, mcpFile)
+  // 如果 mcpFile 是绝对路径，直接使用；否则拼接 targetDir
+  const filePath = path.isAbsolute(mcpFile) 
+    ? mcpFile 
+    : path.join(targetDir, mcpFile)
 
   logger.step(`写入 MCP 配置: ${chalk.gray(mcpFile)}`)
 
@@ -270,7 +279,10 @@ export async function applySkills(
   skillsDir: string,
   targetDir: string
 ): Promise<void> {
-  const fullSkillsDir = path.join(targetDir, skillsDir)
+  // 如果 skillsDir 是绝对路径，直接使用；否则拼接 targetDir
+  const fullSkillsDir = path.isAbsolute(skillsDir) 
+    ? skillsDir 
+    : path.join(targetDir, skillsDir)
 
   logger.step(`写入 ${skills.length} 个 Skill 配置到: ${chalk.gray(skillsDir)}`)
 
