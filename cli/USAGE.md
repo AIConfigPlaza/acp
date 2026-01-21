@@ -128,6 +128,8 @@ acp apply --ide vscode --dir ./my-app
   Cursor
   Codex
   Claude Code
+  CodeBuddy
+  Qoder
 ```
 
 #### Step 5: 确认覆盖（如果文件已存在）
@@ -195,6 +197,32 @@ my-project/
 │   └── commands/
 │       ├── xxx.prompt.md
 │       └── yyy.prompt.md
+├── .mcp.json
+└── AGENTS.md
+```
+
+### CodeBuddy
+```
+my-project/
+├── .codebuddy/
+│   ├── commands/
+│   │   ├── xxx.prompt.md
+│   │   └── yyy.prompt.md
+│   └── skills/
+└── AGENTS.md
+
+注意：CodeBuddy 不支持 MCP 配置写入
+```
+
+### Qoder
+```
+my-project/
+├── .qoder/
+│   └── commands/
+│       ├── xxx.prompt.md
+│       └── yyy.prompt.md
+├── qoder/
+│   └── skills/
 ├── .mcp.json
 └── AGENTS.md
 ```

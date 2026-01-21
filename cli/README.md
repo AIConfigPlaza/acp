@@ -4,7 +4,7 @@
 
 ## 📖 简介
 
-ACP CLI 是一个专为简化 AI 编程工具配置而设计的命令行工具。通过统一的配置标准，帮助开发者快速初始化和配置 AI 工具（如 VS Code、Cursor、Codex、Claude Code 等）。
+ACP CLI 是一个专为简化 AI 编程工具配置而设计的命令行工具。通过统一的配置标准，帮助开发者快速初始化和配置 AI 工具（如 VS Code、Cursor、Codex、Claude Code、CodeBuddy、Qoder 等）。
 
 ### 核心特性
 
@@ -134,12 +134,14 @@ acp apply
 
 不同 AI IDE 的配置文件输出路径：
 
-| IDE         | Prompts 路径         | Agents 文件   | MCP 配置                |
-| ----------- | -------------------- | ------------- | ----------------------- |
-| VS Code     | `.github/prompts/`   | `AGENTS.md`   | `.vscode/mcp.json`      |
-| Cursor      | `.cursor/commands/`  | `AGENTS.md`   | `.cursor/mcp.json`      |
-| Codex       | `~/.codex/prompts/`  | `AGENTS.md`   | `.codex/config.toml`    |
-| Claude Code | `.claude/commands/`  | `AGENTS.md`   | `.mcp.json`             |
+| IDE         | Prompts 路径         | Agents 文件   | MCP 配置                | Skills 路径           |
+| ----------- | -------------------- | ------------- | ----------------------- | -------------------- |
+| VS Code     | `.github/prompts/`   | `AGENTS.md`   | `.vscode/mcp.json`      | `.github/skills/`    |
+| Cursor      | `.cursor/commands/`  | `AGENTS.md`   | `.cursor/mcp.json`      | `.cursor/skills/`    |
+| Codex       | `~/.codex/prompts/`  | `AGENTS.md`   | `.codex/config.toml`    | `.codex/skills/`     |
+| Claude Code | `.claude/commands/`  | `AGENTS.md`   | `.mcp.json`             | `.claude/skills/`    |
+| CodeBuddy   | `.codebuddy/commands/` | `AGENTS.md` | 不支持                  | `.codebuddy/skills/` |
+| Qoder       | `.qoder/commands/`   | `AGENTS.md`   | `.mcp.json`             | `qoder/skills/`      |
 
 ### 文件格式
 
@@ -167,7 +169,7 @@ acp login
 
 **选项**：
 - `-t, --type <type>`：资源类型（目前仅支持 `solution`）
-- `-i, --ide <ide>`：AI IDE 类型（`vscode`|`cursor`|`codex`|`claude-code`）
+- `-i, --ide <ide>`：AI IDE 类型（`vscode`|`cursor`|`codex`|`claude-code`|`codebuddy`|`qoder`）
 - `-d, --dir <path>`：目标目录（默认为当前目录）
 
 **示例**：

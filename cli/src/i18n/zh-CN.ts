@@ -82,7 +82,9 @@ export const zhCN = {
       vscode: 'VS Code',
       cursor: 'Cursor',
       codex: 'Codex',
-      claudeCode: 'Claude Code'
+      claudeCode: 'Claude Code',
+      codeBuddy: 'CodeBuddy',
+      qoder: 'Qoder'
     }
   },
 

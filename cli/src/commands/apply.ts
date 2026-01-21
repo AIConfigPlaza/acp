@@ -21,7 +21,7 @@ type ResourceType = 'solution' | 'agent' | 'prompt' | 'mcp'
 export const applyCommand = new Command('apply')
   .description('拉取并应用配置到本地项目 / Fetch and apply configurations to local project')
   .option('-t, --type <type>', '资源类型 (solution|agent|prompt|mcp) / Resource type', 'solution')
-  .option('-i, --ide <ide>', 'AI IDE 类型 / AI IDE type (vscode|cursor|codex|claude-code)')
+  .option('-i, --ide <ide>', 'AI IDE 类型 / AI IDE type (vscode|cursor|codex|claude-code|codebuddy|qoder)')
   .option('-d, --dir <path>', '目标目录 / Target directory', process.cwd())
   .action(async (options) => {
     try {
@@ -223,7 +223,9 @@ async function selectIde(): Promise<AiIdeType> {
         { name: chalk.cyan(await t('apply.ideTypes.vscode')), value: 'vscode' },
         { name: chalk.cyan(await t('apply.ideTypes.cursor')), value: 'cursor' },
         { name: chalk.cyan(await t('apply.ideTypes.codex')), value: 'codex' },
-        { name: chalk.cyan(await t('apply.ideTypes.claudeCode')), value: 'claude-code' }
+        { name: chalk.cyan(await t('apply.ideTypes.claudeCode')), value: 'claude-code' },
+        { name: chalk.cyan(await t('apply.ideTypes.codeBuddy')), value: 'codebuddy' },
+        { name: chalk.cyan(await t('apply.ideTypes.qoder')), value: 'qoder' }
       ],
       default: 'vscode'
     }
