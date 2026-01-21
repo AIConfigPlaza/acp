@@ -44,7 +44,7 @@ acp login
 ? 请输入 CLI Token: ****************************************
 ✓ 登录成功！Token 已保存到 ~/.acp/token
 
-提示: 现在可以使用 acp fetch 命令拉取配置
+提示: 现在可以使用 acp apply 命令拉取配置
 ```
 
 Token 存储位置：
