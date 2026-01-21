@@ -279,11 +279,7 @@ ACP CLI 连接到 ACP 平台的后端 API 服务：
 遇到问题？请提交 Issue：
 
 - GitHub Issues: https://github.com/AIConfigPlaza/acp/issues
-
-## 📄 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
-
+- 
 ---
 
 **Made with ❤️ by AIConfigPlaza Team**

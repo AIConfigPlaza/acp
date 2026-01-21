@@ -64,15 +64,21 @@ const DEMO_SOLUTION_PROMPTS_KEY = "solution_prompts";
 
 // 将后端 AiTool 枚举值转换为前端格式
 function aiToolToFrontend(aiTool: string): string {
-  // 后端: ClaudeCode, Copilot, Codex, Cursor, Aider, Custom
+  // 后端可能返回: ClaudeCode (PascalCase) 或 claudeCode (camelCase)
   // 前端: claude-code, copilot, codex, cursor, aider, custom
   const mapping: Record<string, string> = {
     "ClaudeCode": "claude-code",
+    "claudeCode": "claude-code",
     "Copilot": "copilot",
+    "copilot": "copilot",
     "Codex": "codex",
+    "codex": "codex",
     "Cursor": "cursor",
+    "cursor": "cursor",
     "Aider": "aider",
+    "aider": "aider",
     "Custom": "custom",
+    "custom": "custom",
   };
   return mapping[aiTool] || aiTool.toLowerCase();
 }
@@ -235,9 +241,9 @@ export function useSolutions() {
             description: solution.description || "",
             aiTool: aiToolToBackend(solution.ai_tool || "claude-code"),
             agentConfigId: solution.agent_id,
-            mcpConfigIds: solution.mcp_service_ids || [],
-            customPromptIds: solution.prompt_ids?.map(p => p.id) || [],
-            skillIds: solution.skill_ids || [],
+            mcpConfigIds: (solution.mcp_service_ids || []).filter(id => id && id.trim() !== ""),
+            customPromptIds: (solution.prompt_ids?.map(p => p.id) || []).filter(id => id && id.trim() !== ""),
+            skillIds: (solution.skill_ids || []).filter(id => id && id.trim() !== ""),
             tags: solution.tags || [],
             isPublic: solution.is_public !== undefined ? solution.is_public : true,
           },
@@ -267,6 +273,7 @@ export function useSolutions() {
       ai_tool,
       mcp_service_ids,
       prompt_ids,
+      skill_ids,
     }: {
       id: string;
       name?: string;
@@ -278,6 +285,7 @@ export function useSolutions() {
       ai_tool?: string;
       mcp_service_ids?: string[];
       prompt_ids?: { id: string; step_order: number }[];
+      skill_ids?: string[];
     }) => {
       if (demoMode) {
         const data = getDemoData<Solution>(DEMO_KEY);
@@ -335,9 +343,9 @@ export function useSolutions() {
       if (agent_id !== undefined) updateData.agentConfigId = agent_id;
       if (is_public !== undefined) updateData.isPublic = is_public;
       if (tags !== undefined) updateData.tags = tags;
-      if (mcp_service_ids !== undefined) updateData.mcpConfigIds = mcp_service_ids;
-      if (prompt_ids !== undefined) updateData.customPromptIds = prompt_ids.map(p => p.id);
-      if (skill_ids !== undefined) updateData.skillIds = skill_ids;
+      if (mcp_service_ids !== undefined) updateData.mcpConfigIds = mcp_service_ids.filter(id => id && id.trim() !== "");
+      if (prompt_ids !== undefined) updateData.customPromptIds = prompt_ids.map(p => p.id).filter(id => id && id.trim() !== "");
+      if (skill_ids !== undefined) updateData.skillIds = skill_ids.filter(id => id && id.trim() !== "");
 
       const result = await apiRequest<SolutionDetailDto>(
         `/api/solutions/${id}`,

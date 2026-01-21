@@ -1,4 +1,4 @@
-import { BookOpen, Terminal, Server, Bot, FileText, GitBranch, ArrowRight, ExternalLink } from "lucide-react";
+import { BookOpen, Terminal, Server, Bot, FileText, GitBranch, ArrowRight, ExternalLink, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
@@ -20,7 +20,8 @@ export default function PublicDocs() {
         { icon: Bot, title: "Agents", desc: "Define AI agent roles, behaviors, and personalities for your workflows." },
         { icon: FileText, title: "Prompts", desc: "Create reusable prompt templates with variables and categories." },
         { icon: Server, title: "MCP Services", desc: "Connect and manage Model Context Protocol services." },
-        { icon: GitBranch, title: "Solutions", desc: "Combine agents, prompts, and services into complete workflows." },
+        { icon: Star, title: "Skills", desc: "Create and manage reusable skills with resources and markdown content." },
+        { icon: GitBranch, title: "Solutions", desc: "Combine agents, prompts, MCP services, and skills into complete workflows." },
       ],
       guides: "Guides",
       guidesList: [
@@ -34,7 +35,7 @@ export default function PublicDocs() {
       viewApi: "View API Docs",
       faq: "FAQ",
       faqList: [
-        { q: "What is ACP?", a: "ACP (AI Config Plaza) is a platform for managing AI configurations, including agents, prompts, and MCP services." },
+        { q: "What is ACP?", a: "ACP (AI Config Plaza) is a platform for managing AI configurations, including agents, prompts, MCP services, and skills." },
         { q: "How do I sync configurations locally?", a: "Use the ACP CLI tool to pull configurations to your local development environment." },
         { q: "Can I share configurations with my team?", a: "Yes! You can add your configurations on the website and set them as public." },
         { q: "What AI tools are supported?", a: "ACP supports Cursor, Claude, and other AI development tools." },
@@ -52,7 +53,8 @@ export default function PublicDocs() {
         { icon: Bot, title: "Agents", desc: "为您的工作流定义 AI Agent 的角色、行为和个性。" },
         { icon: FileText, title: "提示词", desc: "创建带有变量和分类的可复用提示词模板。" },
         { icon: Server, title: "MCP 服务", desc: "连接和管理模型上下文协议服务。" },
-        { icon: GitBranch, title: "Solutions", desc: "将 Agents、提示词和服务组合成完整的工作流。" },
+        { icon: Star, title: "Skills", desc: "创建和管理可复用的技能，包含资源文件和 Markdown 内容。" },
+        { icon: GitBranch, title: "Solutions", desc: "将 Agents、提示词、MCP 服务和 Skills 组合成完整的工作流。" },
       ],
       guides: "使用指南",
       guidesList: [
@@ -66,7 +68,7 @@ export default function PublicDocs() {
       viewApi: "查看 API 文档",
       faq: "常见问题",
       faqList: [
-        { q: "什么是 ACP？", a: "ACP（AI Config Plaza）是一个用于管理 AI 配置的平台，包括 Agents、提示词和 MCP 服务。" },
+        { q: "什么是 ACP？", a: "ACP（AI Config Plaza）是一个用于管理 AI 配置的平台，包括 Agents、提示词、MCP 服务和 Skills。" },
         { q: "如何在本地同步配置？", a: "使用 ACP CLI 工具将配置拉取到本地开发环境。" },
         { q: "我可以与团队共享配置吗？", a: "可以！您可以在网站添加您的配置并设置公开。" },
         { q: "支持哪些 AI 工具？", a: "ACP 支持 Cursor、Claude 和其他 AI 开发工具。" },

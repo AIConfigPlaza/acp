@@ -68,8 +68,8 @@ export function useAgents() {
       // 同时获取当前用户自己创建的Agent配置列表和所有公开的Agent配置列表
       const [mineResult, publicResult] = await Promise.all([
         apiRequest<AgentConfigDto[]>(
-          "/api/agent-configs/mine?page=1&limit=100",
-          { authToken, requireAuth: true }
+        "/api/agent-configs/mine?page=1&limit=100",
+        { authToken, requireAuth: true }
         ),
         apiRequest<AgentConfigDto[]>(
           "/api/agent-configs/public?page=1&limit=100",

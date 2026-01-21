@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Star, Sparkles, Grid3X3, Zap, Bot, FileText, Globe, ChevronDown, LayoutDashboard, LogOut, LogIn, Heart, Download, Code, File, Folder, User, Calendar } from "lucide-react";
+import { Search, Star, Sparkles, Grid3X3, Zap, Bot, FileText, Globe, ChevronDown, ChevronUp, LayoutDashboard, LogOut, LogIn, Heart, Download, Code, File, Folder, User, Calendar, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -387,6 +387,14 @@ export default function Home() {
           </Select>
         </div>
 
+        {/* Info Tip */}
+        <div className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/20 flex items-start gap-3">
+          <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {t("home_like_tip")}
+          </p>
+        </div>
+
         {/* Grid */}
         {isLoadingExplore ? (
           <div className="flex justify-center py-12">
@@ -409,20 +417,20 @@ export default function Home() {
                   }}
                 >
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                      {item.type === "solutions" && <Zap className="w-5 h-5 text-emerald-400" />}
-                      {item.type === "mcp" && <Sparkles className="w-5 h-5 text-blue-400" />}
-                      {item.type === "agents" && <Bot className="w-5 h-5 text-purple-400" />}
-                      {item.type === "prompts" && <FileText className="w-5 h-5 text-amber-400" />}
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                        {item.type === "solutions" && <Zap className="w-5 h-5 text-emerald-400" />}
+                        {item.type === "mcp" && <Sparkles className="w-5 h-5 text-blue-400" />}
+                        {item.type === "agents" && <Bot className="w-5 h-5 text-purple-400" />}
+                        {item.type === "prompts" && <FileText className="w-5 h-5 text-amber-400" />}
                       {item.type === "skills" && <Star className="w-5 h-5 text-cyan-400" />}
-                    </div>
+                      </div>
                     <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <h3 className="font-semibold text-sm truncate">{item.name}</h3>
-                      </div>
-                      <Badge variant="outline" className={`shrink-0 text-xs ${typeColors[item.type]}`}>
-                        {typeLabels[item.type]}
-                      </Badge>
+                    </div>
+                    <Badge variant="outline" className={`shrink-0 text-xs ${typeColors[item.type]}`}>
+                      {typeLabels[item.type]}
+                    </Badge>
                     </div>
                   </div>
 
@@ -443,7 +451,7 @@ export default function Home() {
                         </span>
                       ))
                     ) : null}
-                  </div>
+                    </div>
 
                   <div className="flex items-center justify-between pt-3 border-t border-border/30 mt-auto">
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -543,6 +551,7 @@ function ResourceDetailDialog({
   const { t } = useLanguage();
   const [detail, setDetail] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [contentExpanded, setContentExpanded] = useState<boolean>(true); // Content 默认展开
   const item = selectedItem ? allItems.find(i => i.type === selectedItem.type && i.id === selectedItem.id) : null;
 
   useEffect(() => {
@@ -575,6 +584,7 @@ function ResourceDetailDialog({
       apiRequest(apiUrl, { authToken, requireAuth: false })
         .then((result) => {
           setDetail(result.data);
+          setContentExpanded(true); // 加载新内容时重置为展开
         })
         .catch(() => {
           setDetail(null);
@@ -582,10 +592,11 @@ function ResourceDetailDialog({
         .finally(() => {
           setIsLoading(false);
         });
-    } else {
-      setDetail(null);
-    }
-  }, [open, selectedItem, getAuthToken]);
+      } else {
+        setDetail(null);
+        setContentExpanded(true); // 重置展开状态
+      }
+    }, [open, selectedItem, getAuthToken]);
 
   if (!selectedItem) return null;
 
@@ -597,9 +608,9 @@ function ResourceDetailDialog({
 
   const renderContent = () => {
     if (isLoading) {
-      return (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+  return (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
         </div>
       );
     }
@@ -638,15 +649,27 @@ function ResourceDetailDialog({
               </div>
             )}
             <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                {language === "zh" ? "内容" : "Content"}
-              </h3>
-              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
-                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
-                  {detail.content || detail.contentMd || ""}
-                </pre>
-              </div>
+              <button
+                onClick={() => setContentExpanded(!contentExpanded)}
+                className="w-full text-left mb-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity"
+              >
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  {language === "zh" ? "内容" : "Content"}
+                </h3>
+                {contentExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                )}
+              </button>
+              {contentExpanded && (
+                <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto max-h-[400px] overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                    {detail.content || detail.contentMd || ""}
+                  </pre>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -675,15 +698,27 @@ function ResourceDetailDialog({
               </div>
             )}
             <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                {language === "zh" ? "配置内容" : "Configuration"}
-              </h3>
-              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
-                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
-                  {detail.content || detail.contentMd || ""}
-                </pre>
-              </div>
+              <button
+                onClick={() => setContentExpanded(!contentExpanded)}
+                className="w-full text-left mb-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity"
+              >
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  {language === "zh" ? "配置内容" : "Configuration"}
+                </h3>
+                {contentExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                )}
+              </button>
+              {contentExpanded && (
+                <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto max-h-[400px] overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                    {detail.content || detail.contentMd || ""}
+                  </pre>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -712,15 +747,27 @@ function ResourceDetailDialog({
               </div>
             )}
             <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                {language === "zh" ? "配置JSON" : "Configuration JSON"}
-              </h3>
-              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
-                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
-                  {typeof detail.configJson === 'string' ? detail.configJson : JSON.stringify(detail.configJson, null, 2)}
-                </pre>
-              </div>
+              <button
+                onClick={() => setContentExpanded(!contentExpanded)}
+                className="w-full text-left mb-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity"
+              >
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  {language === "zh" ? "配置JSON" : "Configuration JSON"}
+                </h3>
+                {contentExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                )}
+              </button>
+              {contentExpanded && (
+                <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto max-h-[400px] overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                    {typeof detail.configJson === 'string' ? detail.configJson : JSON.stringify(detail.configJson, null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -730,25 +777,37 @@ function ResourceDetailDialog({
             {detail.tags && detail.tags.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold mb-3">{language === "zh" ? "标签" : "Tags"}</h3>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                   {detail.tags.map((tag: string) => (
                     <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1">
-                      #{tag}
-                    </Badge>
-                  ))}
+                    #{tag}
+                  </Badge>
+                ))}
                 </div>
               </div>
             )}
             <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                {language === "zh" ? "Skill内容" : "Skill Content"}
-              </h3>
-              <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto">
-                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
-                  {detail.skillMarkdown || ""}
-                </pre>
-              </div>
+              <button
+                onClick={() => setContentExpanded(!contentExpanded)}
+                className="w-full text-left mb-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity"
+              >
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Code className="w-4 h-4" />
+                  {language === "zh" ? "Skill内容" : "Skill Content"}
+                </h3>
+                {contentExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                )}
+              </button>
+              {contentExpanded && (
+                <div className="border border-border rounded-lg p-4 bg-muted/30 overflow-x-auto max-h-[400px] overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-mono text-foreground leading-relaxed">
+                    {detail.skillMarkdown || ""}
+                  </pre>
+                </div>
+              )}
             </div>
             {detail.skillResources && detail.skillResources.length > 0 && (
               <div>
@@ -931,7 +990,7 @@ function ResourceDetailDialog({
         {detail && (
           <div className="px-6 py-4 border-t border-border/50 bg-muted/30 flex items-center justify-between">
             <div className="flex items-center gap-6 text-sm">
-              <button
+                <button
                 onClick={async (e) => {
                   e.stopPropagation();
                   if (item && detail) {
@@ -944,7 +1003,7 @@ function ResourceDetailDialog({
                     });
                     
                     // 调用点赞 API（这会更新 localStorage 和后端）
-                    onLike(item, e);
+                      onLike(item, e);
                     
                     // 重新获取详情以同步后端状态（延迟一点以确保 API 调用完成）
                     setTimeout(async () => {
@@ -967,18 +1026,18 @@ function ResourceDetailDialog({
                         }
                       }
                     }, 500);
-                  }
-                }}
-                className={cn(
+                    }
+                  }}
+                  className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors",
                   isLiked 
                     ? "text-rose-500 bg-rose-500/10 hover:bg-rose-500/20" 
                     : "text-muted-foreground hover:text-rose-500 hover:bg-muted"
-                )}
-              >
-                <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+                  )}
+                >
+                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
                 <span className="font-medium">{detail.likes || 0}</span>
-              </button>
+                </button>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Download className="w-4 h-4" />
                 <span>{detail.downloads || 0}</span>

@@ -10,6 +10,7 @@ import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { isDemoMode } from "@/hooks/useDemoMode";
+import { apiRequest } from "@/lib/api";
 
 const AI_TOOL_COLORS: Record<string, string> = {
   "claude-code": "bg-orange-500/20 text-orange-400",
@@ -21,7 +22,7 @@ const AI_TOOL_COLORS: Record<string, string> = {
 
 export default function Solutions() {
   const { t, language } = useLanguage();
-  const { user } = useAuth();
+  const { user, getAuthToken } = useAuth();
   const demoMode = isDemoMode();
   const { solutions, isLoading, create, update, delete: deleteSolution, getSolutionAssociations } = useSolutions();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -57,7 +58,96 @@ export default function Solutions() {
   const handleEdit = async (solution: Solution) => {
     const associations = await getSolutionAssociations(solution.id);
     setEditAssociations(associations);
-    setEditingSolution(solution);
+    
+    // 重新获取详情数据以确保 aiTool 等字段是最新的（使用详情接口返回的数据）
+    if (!demoMode && user) {
+      try {
+        const authToken = getAuthToken();
+        if (authToken) {
+          interface SolutionDetailDto {
+            id: string;
+            name: string;
+            description: string;
+            aiTool: string;
+            agentConfigId: string;
+            tags: string[];
+            isPublic: boolean;
+            downloads: number;
+            likes: number;
+            rating: number;
+            isLikedByCurrentUser: boolean;
+            compatibility: Record<string, unknown>;
+            author: { id: string; username: string; avatarUrl: string | null };
+            agentConfig?: { id: string; name: string; description: string } | null;
+            mcpConfigs: Array<{ id: string; name: string }>;
+            customPrompts: Array<{ id: string; name: string }>;
+            skills: Array<{ id: string; name: string }>;
+            createdAt: string;
+            updatedAt: string;
+          }
+          
+          const result = await apiRequest<SolutionDetailDto>(
+            `/api/solutions/${solution.id}`,
+            { authToken, requireAuth: true }
+          );
+          
+          // aiTool 转换函数（支持 PascalCase 和 camelCase）
+          const aiToolToFrontend = (tool: string): string => {
+            const mapping: Record<string, string> = {
+              "ClaudeCode": "claude-code",
+              "claudeCode": "claude-code",
+              "Copilot": "copilot",
+              "copilot": "copilot",
+              "Codex": "codex",
+              "codex": "codex",
+              "Cursor": "cursor",
+              "cursor": "cursor",
+              "Aider": "aider",
+              "aider": "aider",
+              "Custom": "custom",
+              "custom": "custom",
+            };
+            return mapping[tool] || tool.toLowerCase();
+          };
+          
+          // 转换详情数据为 Solution 格式
+          const detailSolution: Solution = {
+            id: result.data.id,
+            user_id: result.data.author.id,
+            name: result.data.name,
+            description: result.data.description || null,
+            agent_id: result.data.agentConfigId || null,
+            config_json: {},
+            status: "active",
+            last_run_at: null,
+            created_at: result.data.createdAt,
+            updated_at: result.data.updatedAt,
+            is_public: result.data.isPublic,
+            downloads: result.data.downloads,
+            likes: result.data.likes,
+            rating: result.data.rating || null,
+            isLikedByCurrentUser: result.data.isLikedByCurrentUser,
+            tags: result.data.tags || [],
+            ai_tool: aiToolToFrontend(result.data.aiTool),
+            compatibility: result.data.compatibility || {},
+            agent: result.data.agentConfig ? { name: result.data.agentConfig.name } : null,
+            mcp_services: result.data.mcpConfigs?.map(m => ({ id: m.id, name: m.name })) || [],
+            prompts: result.data.customPrompts?.map((p, index) => ({ id: p.id, name: p.name, step_order: index })) || [],
+            skills: result.data.skills?.map(s => ({ id: s.id, name: s.name })) || [],
+          };
+          setEditingSolution(detailSolution);
+        } else {
+          setEditingSolution(solution);
+        }
+      } catch (error) {
+        // 如果获取详情失败，使用列表中的数据作为后备
+        console.error("Failed to fetch solution detail:", error);
+        setEditingSolution(solution);
+      }
+    } else {
+      setEditingSolution(solution);
+    }
+    
     setDialogOpen(true);
   };
 
@@ -148,14 +238,14 @@ export default function Solutions() {
                   </div>
                 </div>
                 {solution.isLikedByCurrentUser !== true || solution.user_id === user?.id ? (
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(solution)}>
-                      <Settings2 size={16} />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(solution)}>
-                      <Trash2 size={16} className="text-destructive" />
-                    </Button>
-                  </div>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(solution)}>
+                    <Settings2 size={16} />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(solution)}>
+                    <Trash2 size={16} className="text-destructive" />
+                  </Button>
+                </div>
                 ) : null}
               </div>
 
@@ -191,9 +281,9 @@ export default function Solutions() {
                   {t("updated")} {new Date(solution.updated_at).toLocaleDateString()}
                 </span>
                 {solution.isLikedByCurrentUser !== true || solution.user_id === user?.id ? (
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(solution)}>
-                    {t("page_edit")}
-                  </Button>
+                <Button variant="outline" size="sm" onClick={() => handleEdit(solution)}>
+                  {t("page_edit")}
+                </Button>
                 ) : null}
               </div>
             </div>
