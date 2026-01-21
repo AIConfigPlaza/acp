@@ -33,6 +33,18 @@ export const IDE_PATH_MAPPINGS: Record<AiIdeType, IdePathMapping> = {
     agents: 'AGENTS.md',
     mcp: '.mcp.json',
     skills: '.claude/skills'
+  },
+  codebuddy: {
+    prompts: '.codebuddy/commands',
+    agents: 'AGENTS.md',
+    mcp: '.mcp.json',
+    skills: '.codebuddy/skills'
+  },
+  qoder: {
+    prompts: '.qoder/commands',
+    agents: 'AGENTS.md',
+    mcp: '.mcp.json',
+    skills: 'qoder/skills'
   }
 }
 

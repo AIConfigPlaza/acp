@@ -131,7 +131,7 @@ export interface Solution {
 }
 
 // AI IDE 类型
-export type AiIdeType = 'vscode' | 'cursor' | 'codex' | 'claude-code'
+export type AiIdeType = 'vscode' | 'cursor' | 'codex' | 'claude-code' | 'codebuddy' | 'qoder'
 
 // 配置输出路径映射
 export interface IdePathMapping {

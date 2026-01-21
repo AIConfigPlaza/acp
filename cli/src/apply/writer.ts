@@ -155,6 +155,12 @@ export async function applyMcpConfigs(
   mcpFile: string,
   targetDir: string
 ): Promise<void> {
+  // 检查是否为 CodeBuddy IDE（不支持 MCP 配置）
+  if (!mcpFile || mcpFile === '') {
+    logger.warning('暂不支持 CodeBuddy 的 MCP 配置写入')
+    return
+  }
+
   const filePath = path.join(targetDir, mcpFile)
 
   logger.step(`写入 MCP 配置: ${chalk.gray(mcpFile)}`)
