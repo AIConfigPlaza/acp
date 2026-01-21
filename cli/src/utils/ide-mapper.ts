@@ -1,3 +1,4 @@
+import { homedir } from 'os'
 import type { AiIdeType, IdePathMapping } from '../types/index.js'
 
 // 重新导出类型
@@ -36,10 +37,26 @@ export const IDE_PATH_MAPPINGS: Record<AiIdeType, IdePathMapping> = {
 }
 
 /**
+ * 展开路径中的 ~ 为用户主目录
+ */
+function expandPath(path: string): string {
+  if (path.startsWith('~')) {
+    return path.replace('~', homedir())
+  }
+  return path
+}
+
+/**
  * 获取 IDE 路径映射
  */
 export function getIdePathMapping(ide: AiIdeType): IdePathMapping {
-  return IDE_PATH_MAPPINGS[ide]
+  const mapping = IDE_PATH_MAPPINGS[ide]
+  return {
+    prompts: expandPath(mapping.prompts),
+    agents: expandPath(mapping.agents),
+    mcp: expandPath(mapping.mcp),
+    skills: expandPath(mapping.skills)
+  }
 }
 
 /**
