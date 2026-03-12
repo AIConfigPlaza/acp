@@ -66,6 +66,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (!code) {
+          // 没有处于 OAuth 回调流程时，如果本地有 token，则做一次静默校验
+          if (cachedToken) {
+            try {
+              const res = await fetch(`${API_BASE_URL}/api/cli-token`, {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${cachedToken}`,
+                },
+              });
+              if (res.status === 401) {
+                // token 已失效，清理本地缓存并重置用户
+                localStorage.removeItem("acp-github-user");
+                localStorage.removeItem("acp-auth-token");
+                localStorage.removeItem("acp-refresh-token");
+                localStorage.removeItem("acp-github-oauth-state");
+                setUser(null);
+              }
+            } catch (e) {
+              console.error("Failed to validate cached token", e);
+              // 网络错误这里不强制登出，避免影响离线浏览首页
+            }
+          }
+
           setLoading(false);
           return;
         }

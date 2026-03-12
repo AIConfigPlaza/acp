@@ -107,6 +107,21 @@ export async function apiRequest<T>(
     });
   };
 
+  const handleUnauthorized = () => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.removeItem("acp-github-user");
+      localStorage.removeItem("acp-auth-token");
+      localStorage.removeItem("acp-refresh-token");
+      localStorage.removeItem("acp-github-oauth-state");
+      localStorage.removeItem("acp-demo-mode");
+    } finally {
+      if (window.location.pathname !== "/auth") {
+        window.location.href = "/auth";
+      }
+    }
+  };
+
   let response = await doFetch(authToken);
 
   // 如果未授权且有刷新令牌，尝试刷新一次
@@ -116,6 +131,7 @@ export async function apiRequest<T>(
       authToken = newToken;
       response = await doFetch(newToken);
     } catch (refreshError) {
+      handleUnauthorized();
       const err = new Error(refreshError instanceof Error ? refreshError.message : "刷新令牌失败");
       (err as Error & { status?: number }).status = 401;
       throw err;
@@ -127,6 +143,9 @@ export async function apiRequest<T>(
     const errorMessage = errorData?.error?.message || `请求失败: ${response.statusText}`;
     const error = new Error(errorMessage);
     (error as Error & { status?: number }).status = response.status;
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     throw error;
   }
 
